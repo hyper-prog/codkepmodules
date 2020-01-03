@@ -1,0 +1,206 @@
+/* CSS file for (CodKep) RawQueries module
+   Written by Peter Deak (C) hyper80@gmail.com , License GPLv2 */
+
+.rq_float_left {
+    float: left;
+}
+.rq_clearboth {
+    clear: both;
+}
+
+.rawqueriesmainlist table {
+    border-collapse:collapse;
+    border: 1px solid #494949;
+}
+.rawqueriesmainlist td,
+.rawqueriesmainlist th{
+    border: 1px solid #333333;
+}
+.rawqueriesmainlist tr:hover td {
+    background-color: #5bc0de !important;
+}
+.rawqueriesmainlist th {
+    background-color: #494949;
+    color: #cacaca;
+    cursor: default;
+}
+.rawqueriesmainlist th a {
+    text-decoration: none;
+    display: block;
+    color: #bababa;
+    background-color: #444477;
+}
+.rawqueriesmainlist th a:hover {
+    color: #ffffff;
+    background-color: #000088;
+}
+
+a.rawqueriesbtnlnk {
+    display: block;
+    text-decoration: none;
+    background-color: #cacaca;
+    border: 1px solid #dddddd;
+    color: black;
+    box-shadow: 2px 2px 1px #555555;
+    text-align: center;
+    cursor: pointer;
+    margin: 3px;
+}
+a.rawqueriesbtnlnk:hover {
+    border: 1px solid #7777ff;
+    background-color: #bbbbcc;
+}
+
+.rq_width90  { width: 90px;  }
+.rq_width200  { width: 200px;  }
+
+a.rawqueries_smpllnk:link {
+    text-decoration: none;
+    color: #2020ff;
+}
+a.rawqueries_smpllnk:hover {
+    color: #1010aa;
+}
+a.rawqueries_smpllnk:active {
+    color: #4444ff;
+}
+a.rawqueries_smpllnk:visited {
+    color: #aa55ff;
+}
+
+.rq_qdescribe {
+    background-color: #777777;
+    border: 1px solid #aaaaaa;
+    color: #eeeeee;
+    padding: 6px;
+    margin: 5px 0px 5px 0px;
+}
+.rq_qeblock {
+    padding: 2px;
+    background-color: #c0dfff;
+    display: block;
+    overflow: hidden;
+}
+
+.rq_fieldrepi {
+    margin: 2px;
+    padding: 1px;
+    float: left;
+    font-size: small;
+    border: 1px solid #4c4c4c;
+    cursor: pointer;
+}
+.rq_qparamtablec th{
+    margin: 2px;
+    padding: 1px;
+    background-color: #f0af7f;
+    border: 1px solid #4c4c4c;
+}
+.rq_qparamtablec td{
+    margin: 2px;
+    padding: 1px;
+    background-color: #f0cfaf;
+    border: 1px solid #4c4c4c;
+}
+
+.rq_niceinputblock {
+    display: inline-block;
+    padding: 8px 0px 8px 0px;
+    margin: 0;
+}
+.rq_niceinputblock #rq_ni_tline {
+    padding: 4px 8px 4px 8px;
+    margin: 0;
+    border: 1px solid #777777;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+    box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.4);
+    outline:0;
+}
+.rq_niceinputblock #rq_ni_btn {
+    padding: 4px 10px 4px 10px;
+    margin: 0;
+    border: 1px solid #777777;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.4);
+    outline:0;
+}
+
+/* Animations */
+
+.rq_anim_popones {
+    -webkit-animation-name: rq_k_anim_popones; /* Safari 4.0 - 8.0 */
+    -webkit-animation-duration: 0.3s; /* Safari 4.0 - 8.0 */
+    animation-name: rq_k_anim_popones;
+    animation-duration: 0.3s;
+}
+@keyframes rq_k_anim_popones {
+    0% {transform: scale(1.0, 1.0);}
+    50% {transform: scale(1.1, 1.1);}
+    86% {transform: scale(0.95, 0.95);}
+    100% {transform: scale(1.0, 1.0);}
+}
+
+.rq_animhover_pops:hover {
+    -webkit-animation-name: rq_k_animhover_pops; /* Safari 4.0 - 8.0 */
+    -webkit-animation-duration: 0.25s; /* Safari 4.0 - 8.0 */
+    animation-name: rq_k_animhover_pops;
+    animation-duration: 0.15s;
+}
+@keyframes rq_k_animhover_pops {
+    0% {transform: scale(1.0, 1.0);}
+    65% {transform: scale(1.15, 1.15);}
+    100% {transform: scale(1.0, 1.0);}
+}
+
+.rq_anim_swing {
+    -webkit-animation-name: rq_k_anim_swing; /* Safari 4.0 - 8.0 */
+    -webkit-animation-duration: 0.3s; /* Safari 4.0 - 8.0 */
+    animation-name: rq_k_anim_swing;
+    animation-duration: 0.3s;
+}
+@keyframes rq_k_anim_swing {
+    0% {transform: rotate(0deg);}
+    25% {transform: rotate(2deg);}
+    50% {transform: rotate(0deg);}
+    75% {transform: rotate(-2deg);}
+    10% {transform: rotate(0deg);}
+}
+.rq_animhover_swing:hover {
+    -webkit-animation-name: rq_k_animhover_swing; /* Safari 4.0 - 8.0 */
+    -webkit-animation-duration: 0.30s; /* Safari 4.0 - 8.0 */
+    animation-name: rq_k_animhover_swing;
+    animation-duration: 0.30s;
+}
+@keyframes rq_k_animhover_swing {
+    0% {transform: rotate(0deg);   box-shadow: 2px 2px 1px #555555; }
+    25% {transform: rotate(2deg);  box-shadow: 3px 4px 1px #555555; }
+    50% {transform: rotate(0deg);  box-shadow: 2px 2px 1px #555555; }
+    75% {transform: rotate(-2deg); box-shadow: -3px 4px 1px #555555; }
+    10% {transform: rotate(0deg);  box-shadow: 2px 2px 1px #555555; }
+}
+
+.rawqueries_twprogressanim {
+    height: 10px;
+    position: relative;
+    background-color: red;
+    -webkit-animation-name: rawqueries_twowaykitt; /* Safari 4.0 - 8.0 */
+    -webkit-animation-duration: 4s; /* Safari 4.0 - 8.0 */
+    animation-name: rawqueries_twowaykitt;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+/* Safari 4.0 - 8.0 */
+@-webkit-keyframes rawqueries_twowaykitt {
+    0%   {left:0px; width:0px;}
+    15%  {left:0px; width:100px;}
+    35%  {left:100px; width:100px;}
+    50%  {left:200px; width:0px;}
+    65%  {left:100px; width:100px;}
+    85%  {left:0px; width:100px;}
+    100% {left:0px; width:0px;}
+}
