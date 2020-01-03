@@ -2,13 +2,13 @@
 
 /*  CodKep core translation - Hungarian
  *
- *  Module name: codkep_hu
+ *  Module name: codkephu
  *
  *
  *  Written by Peter Deak (C) hyper80@gmail.com , License GPLv2
  */
 
-function hook_codkep_hu_init()
+function hook_codkephu_init()
 {
     add_t_array('hu',[
         'Yes' => 'Igen',
