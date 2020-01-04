@@ -33,11 +33,8 @@ function hook_mymodule_poll_access($pollname,$refid,$op,$account)
 function hook_mymodule_node_form_after($node,$op)
 {
     ob_start();
-    if($node->node_type == 'user')
-    {
-        if($node->node_type == 'user' && $op != 'add')
-            print get_poll_block('howniceuser',$node->node_nid);
-    }
+    if($node->node_type == 'user' && $op != 'add')
+        print get_poll_block('howniceuser',$node->node_nid);
     return ob_get_clean();
 }
 .

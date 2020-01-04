@@ -25,11 +25,8 @@ function hook_mymodule_comment_access($c,$ref,$op,$acc)
 function hook_mymodule_node_form_after($node,$op)
 {
     ob_start();
-    if($node->node_type == 'user')
-    {
-        if($node->node_type == 'user' && $op != 'add')
-            print get_comment_block('user',$node->node_nid);
-    }
+    if($node->node_type == 'user' && $op != 'add')
+        print get_comment_block('user',$node->node_nid);
     return ob_get_clean();
 }
 ~~~
