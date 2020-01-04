@@ -2,7 +2,7 @@
 /*  RawQueries module hungarian translates
  *
  *  Module name: rawquerieshu
- *
+ *  Dependencies:
  *
  *  Written by Peter Deak (C) hyper80@gmail.com , License GPLv2
  */

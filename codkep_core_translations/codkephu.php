@@ -3,7 +3,7 @@
 /*  CodKep core translation - Hungarian
  *
  *  Module name: codkephu
- *
+ *  Dependencies:
  *
  *  Written by Peter Deak (C) hyper80@gmail.com , License GPLv2
  */

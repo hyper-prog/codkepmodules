@@ -2,7 +2,7 @@
 /*  RawQueries module for CodKep
  *
  *  Module name: rawqueries
- *
+ *  Dependencies: sql,user,node
  *
  *  Written by Peter Deak (C) hyper80@gmail.com , License GPLv2
  */

@@ -2,7 +2,7 @@
 /*  SelUlize module for CodKep - Makes UL-LI structure from select
  *
  *  Module name: selulize
- *
+ *  Dependencies:
  *
  *  Written by Peter Deak (C) hyper80@gmail.com , License GPLv2
  */
