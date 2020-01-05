@@ -16,6 +16,7 @@ function hook_mymodule_init()
     register_poll_container('userrate');
 }
 .
+//Set who can vote in a specified poll
 function hook_mymodule_poll_access($pollname,$refid,$op,$account)
 {
     if($pollname == 'howniceuser')

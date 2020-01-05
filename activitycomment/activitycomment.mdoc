@@ -14,7 +14,7 @@ function hook_mymodule_init()
     register_comment_container('user');
 }
 .
-//Makes the comment block visible after user page
+//Set who can comment
 function hook_mymodule_comment_access($c,$ref,$op,$acc)
 {
     if($acc->auth)
@@ -22,6 +22,7 @@ function hook_mymodule_comment_access($c,$ref,$op,$acc)
     return ACTIVITYCOMMENT_ACCESS_DENY;
 }
 .
+//Makes the comment block visible after user page
 function hook_mymodule_node_form_after($node,$op)
 {
     ob_start();
