@@ -31,6 +31,21 @@ function hook_rawqueries_boot()
     $rawqueriesmodule_config->querymodules_derivedptitle = '';
     $rawqueriesmodule_config->iconloc = '';
     $rawqueriesmodule_config->modulecssloc = '';
+    $rawqueriesmodule_config->querymodules_extrafields_nt = [];
+    $rawqueriesmodule_config->querymodules_extrafields_n = [];
+}
+
+function hook_rawqueries_init()
+{
+    global $rawqueriesmodule_config;
+    $earr = run_hook('rawqueries_extrafields_sqlreq');
+    foreach($earr as $n => $t)
+    {
+        if(strlen($n) > 0 && strlen($t) > 0) {
+            $rawqueriesmodule_config->querymodules_extrafields_nt[$n] = $t;
+            $rawqueriesmodule_config->querymodules_extrafields_n[] = $n;
+        }
+    }
 }
 
 function hook_rawqueries_before_start()
@@ -136,23 +151,43 @@ function rawquerymodulequery_access($num,$op,$account)
     return NODE_ACCESS_DENY;
 }
 
+function rawquerymodulequery_execaccess($querydataarray,$account)
+{
+    $na = run_hook('rawquerymodulequery_execaccess',$querydataarray,$account);
+    if(in_array(NODE_ACCESS_DENY,$na))
+        return NODE_ACCESS_DENY;
+    if(in_array(NODE_ACCESS_ALLOW,$na))
+        return NODE_ACCESS_ALLOW;
+
+    //Default node permissions:
+    // Allows everything for admins
+    if($account->role == ROLE_ADMIN)
+        return NODE_ACCESS_ALLOW;
+    // Allows exec for everyone who logged in. (You can disable by send DENY from a hook.)
+    if($account->auth)
+        return NODE_ACCESS_ALLOW;
+    return NODE_ACCESS_DENY;
+}
+
 function hook_rawqueries_required_sql_schema()
 {
     global $rawqueriesmodule_config;
 
     $t = array();
+    $startcols = [
+        'typestr'    => "VARCHAR(4) DEFAULT 'n'",
+        'targetstr'  => sql_t('longtext_type') . " NOT NULL DEFAULT ''",
+        'sqlstrng'   => sql_t('longtext_type') . " DEFAULT ''",
+        'num'        => "NUMERIC DEFAULT 0",
+        'parameters' => "VARCHAR(256) DEFAULT ''",
+        'enabled'    => "VARCHAR(1) DEFAULT 'e'",
+        'runcounter' => "NUMERIC(5,0) DEFAULT 0",
+    ];
+    $cols = array_merge($startcols,$rawqueriesmodule_config->querymodules_extrafields_nt);
     $t['rawqueries_module_rawqueries_table'] =
         [
             "tablename" => $rawqueriesmodule_config->querymodules_qsqltablename,
-            "columns" => [
-                'typestr'    => "VARCHAR(512)",
-                'targetstr'  => sql_t('longtext_type') . " NOT NULL DEFAULT ''",
-                'sqlstrng'   => sql_t('longtext_type') . " DEFAULT ''",
-                'num'        => "NUMERIC DEFAULT 0",
-                'parameters' => "VARCHAR(256) DEFAULT ''",
-                'enabled'    => "VARCHAR(1) DEFAULT 'e'",
-                'runcounter' => "NUMERIC(5,0) DEFAULT 0",
-            ],
+            "columns" => $cols,
         ];
     $t['rawqueries_module_rawqueries_favorite_table'] =
         [
@@ -172,6 +207,7 @@ function rawqueries_dm_listqueries($showdisabled = false,$favoritesonly = false)
 
     $q = db_query($rawqueriesmodule_config->querymodules_qsqltablename,'qry')
         ->get_a(['targetstr','num','parameters','enabled','runcounter'],'qry')
+        ->get_a($rawqueriesmodule_config->querymodules_extrafields_n,'qry')
         ->join_opt($rawqueriesmodule_config->querymodules_fsqltablename,'qfv',cond('and')
             ->ff(['qry','num'],['qfv','num'],'=')
             ->fv(['qfv','login'],$user->login,'='))
@@ -194,6 +230,7 @@ function rawqueries_dm_getquery_by_num($num)
         return NULL;
     return db_query($rawqueriesmodule_config->querymodules_qsqltablename,'qry')
         ->get_a(['targetstr','num','parameters','enabled','runcounter','sqlstrng'],'qry')
+        ->get_a($rawqueriesmodule_config->querymodules_extrafields_n,'qry')
         ->join_opt($rawqueriesmodule_config->querymodules_fsqltablename,'qfv',cond('and')
             ->ff(['qry','num'],['qfv','num'],'=')
             ->fv(['qfv','login'],$user->login,'='))
@@ -202,7 +239,7 @@ function rawqueries_dm_getquery_by_num($num)
         ->execute_and_fetch();
 }
 
-function rawqueries_dm_savequery($num,$targetstr,$sqlstrng,$parameters,$enabled)
+function rawqueries_dm_savequery($num,$targetstr,$sqlstrng,$parameters,$enabled,$extrafields = [])
 {
     global $rawqueriesmodule_config;
 
@@ -212,7 +249,8 @@ function rawqueries_dm_savequery($num,$targetstr,$sqlstrng,$parameters,$enabled)
             'sqlstrng' => $sqlstrng,
             'parameters' => $parameters,
             'enabled' => $enabled,
-            ])
+        ])
+        ->set_fv_a($extrafields)
         ->cond_fv('num', $num, '=')
         ->execute();
 }
@@ -668,15 +706,22 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
     $cf->opts(['id' => 'qeditformidentifier']);
     $cf->action_ajax($rawqueriesmodule_config->querymodules_pathprefix . "/ajaxqueryeditordoit/".$num);
     $cf->text('t1','<table>');
-    $cf->select('select','qenable',$r['enabled'],['e' => t('Enabled'),'d' => t('Disabled')],['before' => '<tr><td>','after' => '']);
+    run_hook('rawqueries_extrafields_form','pos0',$cf,$r);
+    $cf->text('tr_p1b','<tr><td>');
+    $cf->select('select','qenable',$r['enabled'],['e' => t('Enabled'),'d' => t('Disabled')],['before' => '','after' => '']);
+    run_hook('rawqueries_extrafields_form','pos1',$cf,$r);
+    $cf->text('tr_p1e','</td></tr>');
     $cf->textarea('dscr',$r['targetstr'],3,100,['before' => '<tr><td>','after' => '</td></tr>']);
+    run_hook('rawqueries_extrafields_form','pos2',$cf,$r);
     $cf->input('text','pars',$r['parameters'],
                 ['size' => 80,
                  'before' => '<tr><td>'.t('Parameters').': ',
                  'after' => ' <small>(STRING|DATE:'.t('Parameter name').':'.t('Parameter description').')</small></td></tr>']);
+    run_hook('rawqueries_extrafields_form','pos3',$cf,$r);
     $cf->text('fr',$frarea,['before' => '<tr><td>','after' => '</td></tr>']);
     $cf->textarea('qsql',$r['sqlstrng'],12,100,['id' => 'qe_qsql','before' => '<tr><td>','after' => '</td></tr>']);
     $cf->hidden('what','',['id' => 'todowhat']);
+    run_hook('rawqueries_extrafields_form','pos4',$cf,$r);
     $cf->input('submit','qesmts',t('Trial run'),[
         'before' => '<tr><td>',
         'after' => '',
@@ -692,6 +737,7 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
     $cf->input('submit', 'qesmts', t('Delete completely'), ['onclick' => "jQuery('#todowhat').val('delete');"]);
 
     $cf->text('tr2','</td></tr>');
+    run_hook('rawqueries_extrafields_form','pos5',$cf,$r);
 
     $cf->text('t2','</table><br/>');
     print '<div class="rq_qeblock">';
@@ -739,6 +785,12 @@ function aj_rawqueriesmodule_ajaxqueryeditordoit()
 
     if(par_is('what','tryrun'))
     {
+        if(NODE_ACCESS_ALLOW != rawquerymodulequery_execaccess($r,$user))
+        {
+            ajax_add_alert(t('You do not have the required permissions to perform this operation!'));
+            return;
+        }
+
         $sql = par('qsql');
         $out = generate_rawqueries_output($sql,$num,'',true);
         ajax_add_hide('#aqproganim', '');
@@ -753,7 +805,12 @@ function aj_rawqueriesmodule_ajaxqueryeditordoit()
         $parameters = par('pars');
         $enabled = par('qenable');
 
-        rawqueries_dm_savequery($num,$targetstr,$sqlstrng,$parameters,$enabled);
+        $extrafields = [];
+        $ef = run_hook('rawqueries_extrafields_save');
+        foreach($ef as $efn => $efv)
+            if(in_array($efn,$rawqueriesmodule_config->querymodules_extrafields_n))
+                $extrafields[$efn] = $efv;
+        rawqueries_dm_savequery($num,$targetstr,$sqlstrng,$parameters,$enabled,$extrafields);
         ajax_add_alert(t('Successfully saved.'));
     }
     if(par_is('what','close'))
@@ -859,9 +916,21 @@ function aj_rawqueriesmodule_ajaxqueryrunner()
     $num = par('num');
 
     if(NODE_ACCESS_ALLOW != rawquerymodulequery_access($num,'view',$user))
+    {
+        ajax_add_hide('#aqproganim','');
+        ajax_add_html('#qresdiv',t('You do not have the required permissions to perform this operation!'));
+        ajax_add_show('.rq_qcontrolpanel','');
         return;
-
+    }
     $r = rawqueries_dm_getquery_by_num($num);
+    if(NODE_ACCESS_ALLOW != rawquerymodulequery_execaccess($r,$user))
+    {
+        ajax_add_hide('#aqproganim','');
+        ajax_add_html('#qresdiv',t('You do not have the required permissions to perform this operation!'));
+        ajax_add_show('.rq_qcontrolpanel','');
+        return;
+    }
+
     if(!isset($r['targetstr']) || $r['targetstr'] == '')
     {
         ajax_add_hide('#aqproganim','');
@@ -906,6 +975,8 @@ function rw_rawqueriesmodule_ajaxqueryxml()
     if(NODE_ACCESS_ALLOW != rawquerymodulequery_access($num,'view',$user))
         return;
     $r = rawqueries_dm_getquery_by_num($num);
+    if(NODE_ACCESS_ALLOW != rawquerymodulequery_execaccess($r,$user))
+        return;
     if(!isset($r['targetstr']) || $r['targetstr'] == '')
         return;
 
