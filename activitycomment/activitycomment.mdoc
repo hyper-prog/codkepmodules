@@ -1,11 +1,50 @@
 = ActivityComment module =
 
 Module name: **activitycomment**
+<br/>
+You have to enable this module in ***site/_modules.php*** file to use it.
 .
 This module gives you the possibility to enable user comments on every object wihch has an unique identifier.
 .
 {file:commentonusers.png}
 .
+=== ActivityComment API ===
+
+@@@register_comment_container($containername)@@@
+<br/>
+Registers a comment container in the system which is a simple string without spaces and any special characters.
+(Defines a separate sql table for the comments located in this container)
+You have to call this function to use comment system, so it's practical to put this in an init [hook|url:doc/codkep/hooks].
+(See example below)
+.
+*Note: Registering more comment containers makes the possibility to spread the data into more sql tables.*
+.
+*Note2: After enable the comment container you must visit the [sql scheme editor page|url:doc/codkep/sql#schemeedit] *
+*to satisfy the schema requirements of the module.*
+
+.
+@@@get_comment_block($container,$refid)@@@
+<br/>
+Generates a comment block for an object which has unique id which works into the parameter passed comment container.
+It returns the html codes of the comment block contains the comments and the new comment form. It generates ajax based
+controls to add and delete comments.
+
+=== Permissions of commenting ===
+
+You have to define the ***comment_access*** [hook|url:doc/codkep/hooks] to controls who can comment in the system.
+The hook receives the following parameters:
+
+- ***$container*** - The comment container name
+- ***$refid*** - The unique id of the object where the comment put.
+- ***$op*** - "view" or "add"
+- ***$account*** - The user object who intend to do the operation
+
+You have to return one of the following values from your hook:
+- ***ACTIVITYCOMMENT_ACCESS_ALLOW***
+- ***ACTIVITYCOMMENT_ACCESS_DENY***
+- ***ACTIVITYCOMMENT_ACCESS_IGNORE***
+
+=== Sample code ===
 Enable comments on every user object for every authenticated users:
 
 ~~~php
@@ -15,7 +54,7 @@ function hook_mymodule_init()
 }
 .
 //Set who can comment
-function hook_mymodule_comment_access($c,$ref,$op,$acc)
+function hook_mymodule_comment_access($cont,$ref,$op,$acc)
 {
     if($acc->auth)
         return ACTIVITYCOMMENT_ACCESS_ALLOW;
@@ -32,3 +71,12 @@ function hook_mymodule_node_form_after($node,$op)
 }
 ~~~
 
+== Settings ==
+
+The ActivityHook module have some settings which can set [in site settings|url:doc/codkep/modules#site_settings].
+.
+| name                                                              | default                          | description |
+|---                                                                |---       | ---                              |---          |
+|<small> ***$site_config->comment_delete_own_until_sec***    </small>|<small> 60*60 </small>| Specifies how many seconds the user can delete own comments. |
+|<small> ***$site_config->acitvity_comment_block_css_class***  </small>|<small> "commentblk_default_style"  </small>| It specifies the top level css class of the comment block. All default css rules depends on this class name so you can write completely different styles by redefine this string. |
+|<small> ***$site_config->acitvity_comment_renderer_callback***  </small>|<small> "codkep_render_commentblock"  </small>| The callback name of the comment renderer function. You can use your own renderer by change this variable. |

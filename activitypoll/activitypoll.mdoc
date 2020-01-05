@@ -1,13 +1,95 @@
 = ActivityPoll module =
 
 Module name: **activitypoll**
+<br/>
+You have to enable this module in ***site/_modules.php*** file to use it.
 .
 This module gives you the possibility to register various polls to enable users
 to vote on objects wihch has an unique identifier.
 .
 {file:pollonuser.png}
 .
-Enable comments on every user object for every authenticated users:
+=== ActivityPoll API ===
+
+@@@register_poll_container($containername)@@@
+<br/>
+Registers a poll container in the system which is a simple string without spaces and any special characters.
+(Defines a separate sql table for the polls located in this container)
+You have to call this function to use poll system, so it's practical to put this in an init [hook|url:doc/codkep/hooks].
+(See example below)
+.
+*Note: Registering more poll containers makes the possibility to spread the data into more sql tables.*
+.
+*Note2: After enable the poll container you must visit the [sql scheme editor page|url:doc/codkep/sql#schemeedit] *
+*to satisfy the schema requirements of the module.*
+.
+@@@register_poll($pollname,$container,$title,$choices,$default = '',$date_start = '',$date_end = '')@@@
+<br/>
+Registers a new poll with name ***$pollname*** in the ***$container*** poll container.
+It have to call one time only when the poll created. After the call, the poll is stored in the system.
+The ***$title*** parameter contains the text put as description shown together with the poll.
+The ***$choices*** is an associative array contains the possible votes.
+.
+@@@unregister_poll($pollname)@@@
+<br/>
+Unregisters and completely delete the specified poll from the system.
+.
+@@@get_poll_list($container = '',array $search_options = [])@@@
+<br/>
+Search between the polls
+~~~php
+    /* $search_options = [
+                'activeonly' => true | false
+                'fromdate' => '2019-01-20'
+                'todate' => '2019-02-22'
+                'add_voteactive' => true
+                'add_votecount' => true //only works when container not empty
+                'filled_by_uid' => UID   // need for filled_bysb_order
+                'filled_to_ref' => REFID // need for filled_bysb_order
+                'sort' => 'titletext'  '-name' or ['-voteactive','votecount','titletext']
+            ]
+    */
+~~~
+.
+@@@get_poll_choices_array_by_pollname($pollname)@@@
+<br/>
+It returns the possible choices of the specified poll.
+.
+@@@poll_is_user_voted($pollname,$container,$id,$uid)@@@
+<br/>
+Checks whether the specified user take a vote or not in the specified poll.
+It returns ***TRUE*** or ***FALSE***.
+.
+@@@get_poll_results($container,$pollname,$id)@@@
+<br/>
+It returns the results of the specified poll in an associative array.
+.
+@@@get_poll_block($pollname,$id,$maincssclass = '')@@@
+<br/>
+Generates a poll block for an object which has unique id with the specified poll.
+It returns the html codes of the poll block  It generates ajax based
+controls.
+
+=== Permissions of poll vote ===
+
+You have to define the ***poll_access*** [hook|url:doc/codkep/hooks] to controls who
+can vote in a specified poll in the system.
+.
+The hook receives the following parameters:
+
+- ***$pollname*** - The name of the poll.
+- ***$refid*** - The unique id of the object where the user vote.
+- ***$op*** - "view" or "add"
+- ***$account*** - The user object who intend to do the operation
+
+You have to return one of the following values from your hook:
+- ***ACTIVITYPOLL_ACCESS_ALLOW***
+- ***ACTIVITYPOLL_ACCESS_DENY***
+- ***ACTIVITYPOLL_ACCESS_IGNORE***
+
+=== Sample code ===
+
+Enable polls on every user object for every authenticated users:
 
 ~~~php
 
@@ -50,3 +132,12 @@ function register_howniceuser_poll()
       '1');
 }
 ~~~
+
+== Settings ==
+
+The ActivityPoll module have some settings which can set [in site settings|url:doc/codkep/modules#site_settings].
+.
+| name                                                              | default                          | description |
+|---                                                                |---       | ---                              |---          |
+|<small> ***$site_config->activity_poll_main_css_class***    </small>|<small> "ckpoll_default_style" </small>| It specifies the top level css class of the poll block. All default css rules depends on this class name so you can write completely different styles by redefine this string. |
+|<small> ***$site_config->activity_poll_showpoll_callback***    </small>|<small> "pollresult_generator_default" </small>| The callback name of the poll renderer function. You can use your own renderer by change this variable. |
