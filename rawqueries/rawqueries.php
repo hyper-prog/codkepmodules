@@ -846,6 +846,12 @@ function generate_rawqueries_output($sql,$num,$title,$html_xml = true)
     if($sql == '')
         return '';
 
+    $pass = new stdClass();
+    $pass->num = $num;
+    $pass->html_xml = $html_xml;
+    $pass->sqlref = &$sql;
+    run_hook('rawqueries_executequery_alter',$pass);
+
     par_def('p','textbase64');
     $pstr = par('p');
     $ppack = unserialize(base64_decode($pstr));
