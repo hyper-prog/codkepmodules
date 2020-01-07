@@ -76,6 +76,7 @@ function hook_codkephu_init()
         'The password has to contains at least _len_ numeric letter!' => 'A megadott jelszó tartalmazzon legalább _len_ számjegyet!',
         'The complexity of the password is too low!' => 'A megadott jelszó bonyolultsága túlságosan kicsi!',
         'Just now' => 'Éppen most',
+        'Last modified' => 'Utolsó módosítás',
         'Delete this comment' => 'Töröld ezt a megjegyzést',
         'Send' => 'Elküld',
         'The "_username_" user logged in' => 'A "_username_" nevű felhasználó bejelentkezve',

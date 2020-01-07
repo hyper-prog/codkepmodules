@@ -182,6 +182,8 @@ function hook_rawqueries_required_sql_schema()
         'parameters' => "VARCHAR(256) DEFAULT ''",
         'enabled'    => "VARCHAR(1) DEFAULT 'e'",
         'runcounter' => "NUMERIC(5,0) DEFAULT 0",
+        'modlogin'   => "VARCHAR(128)",
+        'modtime'    => sql_t('timestamp_noupd'),
     ];
     $cols = array_merge($startcols,$rawqueriesmodule_config->querymodules_extrafields_nt);
     $t['rawqueries_module_rawqueries_table'] =
@@ -206,7 +208,7 @@ function rawqueries_dm_listqueries($showdisabled = false,$favoritesonly = false)
     global $user;
 
     $q = db_query($rawqueriesmodule_config->querymodules_qsqltablename,'qry')
-        ->get_a(['targetstr','num','parameters','enabled','runcounter'],'qry')
+        ->get_a(['targetstr','num','parameters','enabled','runcounter','modlogin','modtime'],'qry')
         ->get_a($rawqueriesmodule_config->querymodules_extrafields_n,'qry')
         ->join_opt($rawqueriesmodule_config->querymodules_fsqltablename,'qfv',cond('and')
             ->ff(['qry','num'],['qfv','num'],'=')
@@ -229,7 +231,7 @@ function rawqueries_dm_getquery_by_num($num)
     if($num == '')
         return NULL;
     return db_query($rawqueriesmodule_config->querymodules_qsqltablename,'qry')
-        ->get_a(['targetstr','num','parameters','enabled','runcounter','sqlstrng'],'qry')
+        ->get_a(['targetstr','num','parameters','enabled','runcounter','sqlstrng','modlogin','modtime'],'qry')
         ->get_a($rawqueriesmodule_config->querymodules_extrafields_n,'qry')
         ->join_opt($rawqueriesmodule_config->querymodules_fsqltablename,'qfv',cond('and')
             ->ff(['qry','num'],['qfv','num'],'=')
@@ -241,6 +243,7 @@ function rawqueries_dm_getquery_by_num($num)
 
 function rawqueries_dm_savequery($num,$targetstr,$sqlstrng,$parameters,$enabled,$extrafields = [])
 {
+    global $user;
     global $rawqueriesmodule_config;
 
     db_update($rawqueriesmodule_config->querymodules_qsqltablename)
@@ -249,6 +252,8 @@ function rawqueries_dm_savequery($num,$targetstr,$sqlstrng,$parameters,$enabled,
             'sqlstrng' => $sqlstrng,
             'parameters' => $parameters,
             'enabled' => $enabled,
+            'modlogin' => ($user->auth ? $user->login : '<unauthenticated>'),
+            'modtime' => sql_t('current_timestamp'),
         ])
         ->set_fv_a($extrafields)
         ->cond_fv('num', $num, '=')
@@ -283,6 +288,7 @@ function rawqueries_dm_query_delete($num)
 
 function rawqueries_dm_query_addnew($num)
 {
+    global $user;
     global $rawqueriesmodule_config;
 
     $db = db_query($rawqueriesmodule_config->querymodules_qsqltablename)
@@ -304,6 +310,8 @@ function rawqueries_dm_query_addnew($num)
             'parameters' => '',
             'enabled' => 'd',
             'runcounter' => 0,
+            'modlogin' => ($user->auth ? $user->login : '<unauthenticated>'),
+            'modtime' => sql_t('current_timestamp'),
             ])
         ->execute();
 }
@@ -737,8 +745,13 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
     $cf->input('submit', 'qesmts', t('Delete completely'), ['onclick' => "jQuery('#todowhat').val('delete');"]);
 
     $cf->text('tr2','</td></tr>');
-    run_hook('rawqueries_extrafields_form','pos5',$cf,$r);
 
+    run_hook('rawqueries_extrafields_form','pos5',$cf,$r);
+    $cf->text('lmodtxt',
+              '<small>'.t('Last modified').': '.
+                '<span id="qe_lmodvals">'.substr($r['modtime'],0,19).' ('.$r['modlogin'].
+                 ')</span></small>',
+              ['id' => 'qe_lmodtxt','before' => '<tr><td>','after' => '</td></tr>']);
     $cf->text('t2','</table><br/>');
     print '<div class="rq_qeblock">';
     print $cf->get();
@@ -811,6 +824,7 @@ function aj_rawqueriesmodule_ajaxqueryeditordoit()
             if(in_array($efn,$rawqueriesmodule_config->querymodules_extrafields_n))
                 $extrafields[$efn] = $efv;
         rawqueries_dm_savequery($num,$targetstr,$sqlstrng,$parameters,$enabled,$extrafields);
+        ajax_add_html('#qe_lmodvals',t('Just now'));
         ajax_add_alert(t('Successfully saved.'));
     }
     if(par_is('what','close'))
