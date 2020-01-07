@@ -747,10 +747,11 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
     $cf->text('tr2','</td></tr>');
 
     run_hook('rawqueries_extrafields_form','pos5',$cf,$r);
+    $lst_mod_txt = t('Unknown');
+    if(strlen($r['modtime']) > 0 && strlen($r['modlogin']) > 0)
+        $lst_mod_txt = substr($r['modtime'],0,19).' ('.$r['modlogin'].')';
     $cf->text('lmodtxt',
-              '<small>'.t('Last modified').': '.
-                '<span id="qe_lmodvals">'.substr($r['modtime'],0,19).' ('.$r['modlogin'].
-                 ')</span></small>',
+              '<small>'.t('Last modified').': <span id="qe_lmodvals">'.$lst_mod_txt.'</span></small>',
               ['id' => 'qe_lmodtxt','before' => '<tr><td>','after' => '</td></tr>']);
     $cf->text('t2','</table><br/>');
     print '<div class="rq_qeblock">';
