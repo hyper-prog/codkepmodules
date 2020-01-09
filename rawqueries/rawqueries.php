@@ -24,6 +24,7 @@ function hook_rawqueries_boot()
     $rawqueriesmodule_config->add_rq_fav_to_usernode = true;
     $rawqueriesmodule_config->querymodules_get_favsett_callback = 'rawquerymodule_default_getfavoritesett';
     $rawqueriesmodule_config->querymodules_set_favsett_callback = 'rawquerymodule_default_setfavoritesett';
+    $rawqueriesmodule_config->querymodules_skipfromlistcallback = '';
     $rawqueriesmodule_config->querymodules_runcounterbypasscallback = 'rawquerymodule_default_runcounterbypasscallback';
 
 
@@ -430,7 +431,12 @@ function pc_rawqueriesmodule_queries()
         '#fields' => ['serialnum','fav','runcounter','targetstr','runner'],
         '#lineskip_callback' => function($r) {
             global $user;
+            global $rawqueriesmodule_config;
             if(NODE_ACCESS_ALLOW != rawquerymodulequery_access($r['num'],'view',$user))
+                return true;
+            if($rawqueriesmodule_config->querymodules_skipfromlistcallback != '' &&
+               is_callable($rawqueriesmodule_config->querymodules_skipfromlistcallback) &&
+               call_user_func($rawqueriesmodule_config->querymodules_skipfromlistcallback,$r) == true)
                 return true;
             return false;
         },
@@ -722,7 +728,7 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
     $cf->textarea('dscr',$r['targetstr'],3,100,['before' => '<tr><td>','after' => '</td></tr>']);
     run_hook('rawqueries_extrafields_form','pos2',$cf,$r);
     $cf->input('text','pars',$r['parameters'],
-                ['size' => 80,
+                ['size' => 75,
                  'before' => '<tr><td>'.t('Parameters').': ',
                  'after' => ' <small>(STRING|DATE:'.t('Parameter name').':'.t('Parameter description').')</small></td></tr>']);
     run_hook('rawqueries_extrafields_form','pos3',$cf,$r);
