@@ -152,13 +152,12 @@ function addnewcomment_comment()
     if(comment_access($container,$refid,'add',$user) != ACTIVITYCOMMENT_ACCESS_ALLOW)
         return;
 
-    global $db;
     sql_exec("INSERT INTO comment_$container(ref,uid,created,body)
               VALUES(:refid,:uid,".sql_t('current_timestamp').",:bodytxt)",
                 [':refid' => $refid,
                  ':uid' => $user->uid,
                  ':bodytxt' => $bodytext ] );
-    $cid = $db->sql->lastInsertId('cid');
+    $cid = sql_getLastInsertId('comment_'.$container,'cid');
     ajax_add_append("#showcommentarea_$refid",
         call_user_func_array($site_config->acitvity_comment_renderer_callback,
                          [$container,$cid,$user->name,t('Just now'),
@@ -232,8 +231,8 @@ function hook_activitycomment_required_sql_schema()
                 "tablename" => "comment_$cnt",
                 "columns" => [
                     'cid' => 'SERIAL',
-                    'ref' => 'BIGINT UNSIGNED',
-                    'uid' => 'BIGINT UNSIGNED',
+                    'ref' => 'BIGINT',
+                    'uid' => 'BIGINT',
                     'created' => 'TIMESTAMP',
                     'body' => sql_t('longtext_type'),
                 ],

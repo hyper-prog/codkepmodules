@@ -254,8 +254,8 @@ function rawqueries_dm_savequery($num,$targetstr,$sqlstrng,$parameters,$enabled,
             'parameters' => $parameters,
             'enabled' => $enabled,
             'modlogin' => ($user->auth ? $user->login : '<unauthenticated>'),
-            'modtime' => sql_t('current_timestamp'),
         ])
+        ->set_fe('modtime',sql_t('current_timestamp'))
         ->set_fv_a($extrafields)
         ->cond_fv('num', $num, '=')
         ->execute();
@@ -312,8 +312,8 @@ function rawqueries_dm_query_addnew($num)
             'enabled' => 'd',
             'runcounter' => 0,
             'modlogin' => ($user->auth ? $user->login : '<unauthenticated>'),
-            'modtime' => sql_t('current_timestamp'),
             ])
+        ->set_fe('modtime',sql_t('current_timestamp'))
         ->execute();
 }
 

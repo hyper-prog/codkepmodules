@@ -70,6 +70,31 @@ function hook_mymodule_node_form_after($node,$op)
     return ob_get_clean();
 }
 ~~~
+.
+Let's see how to make the authenticated users can comment the CodKep pages. (Page node)
+.
+~~~php
+function hook_mymodule_init()
+{
+    register_comment_container('pagecomm');
+}
+.
+//Set who can comment
+function hook_mymodule_comment_access($cont,$ref,$op,$acc)
+{
+    if($acc->auth)
+        return ACTIVITYCOMMENT_ACCESS_ALLOW;
+    return ACTIVITYCOMMENT_ACCESS_DENY;
+}
+.
+//Makes the comment block visible when view a page
+function hook_mymodule_pageview_after($pagenode)
+{
+    ob_start();
+    print get_comment_block('pagecomm',$pagenode->node_nid);
+    return ob_get_clean();
+}
+~~~
 
 == Settings ==
 
