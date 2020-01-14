@@ -725,10 +725,11 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
     $cf->select('select','qenable',$r['enabled'],['e' => t('Enabled'),'d' => t('Disabled')],['before' => '','after' => '']);
     run_hook('rawqueries_extrafields_form','pos1',$cf,$r);
     $cf->text('tr_p1e','</td></tr>');
-    $cf->textarea('dscr',$r['targetstr'],3,100,['before' => '<tr><td>','after' => '</td></tr>']);
+    $cf->textarea('dscr',$r['targetstr'],3,100,['id' => 'rqe_describeeditortxt','before' => '<tr><td>','after' => '</td></tr>']);
     run_hook('rawqueries_extrafields_form','pos2',$cf,$r);
     $cf->input('text','pars',$r['parameters'],
-                ['size' => 75,
+                ['id' => 'rqe_parameteredit',
+                 'size' => 75,
                  'before' => '<tr><td>'.t('Parameters').': ',
                  'after' => ' <small>(STRING|DATE:'.t('Parameter name').':'.t('Parameter description').')</small></td></tr>']);
     run_hook('rawqueries_extrafields_form','pos3',$cf,$r);
@@ -741,6 +742,7 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
         'after' => '',
         'onclick' => "jQuery('#todowhat').val('tryrun');"]);
     $cf->input('submit','qesmts',t('Save'),[
+        'id' => 'rqedit_save_button',
         'before' => '',
         'after' => '',
         'onclick' => "jQuery('#todowhat').val('save');"]);
@@ -764,11 +766,24 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
     print $cf->get();
     print '</div>';
     print "<script>
+
             jQuery(document).ready(function() {
                 jQuery('.rq_fieldrepi').on('click',function(e) {
                     var s = jQuery(this).html();
                     if(s != '')
+                    {
                         rawQEditorInsertAtCaret('qe_qsql','#'+jQuery(this).html());
+                        jQuery('#rqedit_save_button').addClass('rawqsqlchanged');
+                    }
+                });
+                jQuery('#qe_qsql').bind('input propertychange', function() {
+                    jQuery('#rqedit_save_button').addClass('rawqsqlchanged');
+                });
+                jQuery('#rqe_parameteredit').bind('input propertychange', function() {
+                    jQuery('#rqedit_save_button').addClass('rawqsqlchanged');
+                });
+                jQuery('#rqe_describeeditortxt').bind('input propertychange', function() {
+                    jQuery('#rqedit_save_button').addClass('rawqsqlchanged');
                 });
             });
         </script>";
@@ -832,6 +847,7 @@ function aj_rawqueriesmodule_ajaxqueryeditordoit()
                 $extrafields[$efn] = $efv;
         rawqueries_dm_savequery($num,$targetstr,$sqlstrng,$parameters,$enabled,$extrafields);
         ajax_add_html('#qe_lmodvals',t('Just now'));
+        ajax_add_removeclass('#rqedit_save_button','rawqsqlchanged');
         ajax_add_alert(t('Successfully saved.'));
     }
     if(par_is('what','close'))
