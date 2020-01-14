@@ -24,6 +24,7 @@ function hook_mechanictheme_boot()
 
     $mechanictheme->dropdownmenu_startmenupics = codkep_get_path('mechanictheme','web') . '/images/menu.png';
     $mechanictheme->menu_add_samplemenu_if_empty = true;
+    $mechanictheme->dropdownmenu_width = 200;
 }
 
 function hook_mechanictheme_theme()
@@ -114,6 +115,7 @@ function mechanictheme_runonce($content)
     add_header('<meta http-equiv="Cache-Control" content="no-cache" />' . "\n");
     add_header('<meta http-equiv="Pragma" content="no-cache" />' . "\n");
 
+    add_style(".dropdown-content { min-width: ".$mechanictheme->dropdownmenu_width."px; }");
     $mypath = codkep_get_path('mechanictheme','web');
     if(!$mechanictheme->disable_builtin_mechaniccss)
         add_css_file($mypath . '/mechanictheme.css');
