@@ -14,10 +14,10 @@ function hook_mechanictheme_boot()
 
     //Configurable values
     $mechanictheme->statustext = '';
-    $mechanictheme->topbuttons = [];
     $mechanictheme->topbuttons_disable_loginlogoutbutton = false;
     $mechanictheme->disable_builtin_mechaniccss = false;
     $mechanictheme->disable_builtin_colorcss = false;
+    $mechanictheme->disable_sitenameandslogan_in_header = false;
 
     $mechanictheme->dropdownmenu_structure_prefix = '';
     $mechanictheme->dropdownmenu_structure_suffix = '';
@@ -79,10 +79,23 @@ function mechanictheme_alwaysontop()
             print div("headerbutton logoutbtn float_right", l(t("Login"), "user/login", ["title" => t('Login to the site')]));
     }
 
-    foreach($mechanictheme->topbuttons as $name => $to)
+    $topbuttons = run_hook('mechanictheme_topbuttons');
+    usort($topbuttons,function($a,$b) {
+        $ai = isset($a['index']) ? $a['index'] : 0;
+        $bi = isset($b['index']) ? $b['index'] : 0;
+        if($ai < $bi)
+            return -1;
+        if($ai ==$bi)
+            return 0;
+        return 1;
+    });
+    foreach($topbuttons as $btn)
     {
         print div("headerbutton refreshbtn float_right",
-              l($name,$to['url'], ['title' => $to['title']]));
+                   l($btn['text'],$btn['url'],
+                     isset($btn['options']) ? $btn['options'] : [],
+                     isset($btn['query']) ? $btn['query'] : [],
+                     isset($btn['fragment']) ? $btn['fragment'] : NULL));
     }
 
     print div('c','');
@@ -127,6 +140,7 @@ function mechanictheme_htmlend($route)
 function mechanictheme_body($content,$route)
 {
     global $site_config;
+    global $mechanictheme;
 
     $startpage_rawurl = url($site_config->startpage_location);
     $home_text = t('Home');
@@ -141,7 +155,8 @@ function mechanictheme_body($content,$route)
     print " <div id=\"header\" class=\"headerbgcolor\">\n";
     print "  <div class=\"section c\">\n";
 
-    if($site_config->site_name != NULL || $site_config->site_slogan != NULL)
+    if(!$mechanictheme->disable_sitenameandslogan_in_header &&
+        ($site_config->site_name != NULL || $site_config->site_slogan != NULL))
     {
         print "   <div id=\"name-and-slogan\">\n";
         if($site_config->site_name != NULL)
@@ -181,5 +196,16 @@ function mechanictheme_body($content,$route)
     print "</body>\n";
     return ob_get_clean();
 }
+
+/** This hook is ivoked by the mechanic theme every time before the content generation. */
+function _HOOK_mechanictheme_runonce() {}
+
+/** This hook is collects the top button row of the mechanic theme.
+ * The hooks must return the following structure:
+   return [
+      ['index' => 2,'text' => 'Btn text','url' => 'herepath','options' => ['title' => 'This is a button']],
+   ];
+ */
+function _HOOK_mechanictheme_topbuttons() {}
 
 //end.
