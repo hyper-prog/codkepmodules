@@ -92,11 +92,15 @@ function mechanictheme_alwaysontop()
     });
     foreach($topbuttons as $btn)
     {
-        print div("headerbutton refreshbtn float_right",
-                   l($btn['text'],$btn['url'],
-                     isset($btn['options']) ? $btn['options'] : [],
-                     isset($btn['query']) ? $btn['query'] : [],
-                     isset($btn['fragment']) ? $btn['fragment'] : NULL));
+        if(isset($btn['text']) && isset($btn['url']) && 
+           strlen($btn['text']) > 0 && strlen($btn['url']) > 0)
+        {
+            print div("headerbutton refreshbtn float_right",
+                       l($btn['text'],$btn['url'],
+                         isset($btn['options']) ? $btn['options'] : [],
+                         isset($btn['query']) ? $btn['query'] : [],
+                         isset($btn['fragment']) ? $btn['fragment'] : NULL));
+       }
     }
 
     print div('c','');
