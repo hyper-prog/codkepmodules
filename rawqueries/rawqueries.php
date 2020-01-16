@@ -655,7 +655,7 @@ function pc_rawqueriesmodule_query()
                     $required_parameters_are_set = false;
                 else
                 {
-                    $ppakk[$pt[1]] = par($pt[1].'_year').'-'.par($pt[1].'_month');
+                    $ppakk[$pt[1].'_BARE']  = par($pt[1].'_year').'-'.par($pt[1].'_month');
                     $ppakk[$pt[1].'_FIRST'] = par($pt[1].'_year').'-'.par($pt[1].'_month').'-01';
                     $ppakk[$pt[1].'_LAST']  = date("Y-m-t", strtotime($ppakk[$pt[1].'_FIRST']));
                 }
