@@ -631,6 +631,35 @@ function pc_rawqueriesmodule_query()
                 else
                     $ppakk[$pt[1]] = par($pt[1]);
             }
+            if($pt[0] == 'YEARMONTH')
+            {
+                global $sys_data;
+
+                $ya = [];
+                $ma = [];
+                for($i=1900;$i<2050;++$i)
+                    $ya[$i] = "$i";
+                for($i=1;$i<13;++$i)
+                    $ma[$i] = t($sys_data->month_names[intval($i)]);
+                $pf->select_p('select',$pt[1]."_year",date('Y'),$ya,[
+                                'before' => '<tr><td>'.$expltext.'</td><td>',
+                                'after' => ' - ',
+                                'no_par_load' => $skip_load_values]);
+                $pf->select_p('select',$pt[1]."_month",date('m'),$ma,[
+                                'before' => '',
+                                'after' => '</td></tr>',
+                                'no_par_load' => $skip_load_values]);
+
+                if(!par_ex($pt[1]."_year")  || par($pt[1]."_year") == '' ||
+                   !par_ex($pt[1]."_month") || par($pt[1]."_month") == ''   )
+                    $required_parameters_are_set = false;
+                else
+                {
+                    $ppakk[$pt[1]] = par($pt[1].'_year').'-'.par($pt[1].'_month');
+                    $ppakk[$pt[1].'_FIRST'] = par($pt[1].'_year').'-'.par($pt[1].'_month').'-01';
+                    $ppakk[$pt[1].'_LAST']  = date("Y-m-t", strtotime($ppakk[$pt[1].'_FIRST']));
+                }
+            }
         }
 
         if(!$required_parameters_are_set)
@@ -731,7 +760,7 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
                 ['id' => 'rqe_parameteredit',
                  'size' => 75,
                  'before' => '<tr><td>'.t('Parameters').': ',
-                 'after' => ' <small>(STRING|DATE:'.t('Parameter name').':'.t('Parameter description').')</small></td></tr>']);
+                 'after' => ' <small>(STRING|DATE|YEARMONTH:'.t('Parameter name').':'.t('Parameter description').')</small></td></tr>']);
     run_hook('rawqueries_extrafields_form','pos3',$cf,$r);
     $cf->text('fr',$frarea,['before' => '<tr><td>','after' => '</td></tr>']);
     $cf->textarea('qsql',$r['sqlstrng'],12,100,['id' => 'qe_qsql','before' => '<tr><td>','after' => '</td></tr>']);
