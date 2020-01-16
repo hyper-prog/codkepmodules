@@ -766,8 +766,8 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
     print $cf->get();
     print '</div>';
     print "<script>
-
             jQuery(document).ready(function() {
+                jQuery('#qe_qsql').attr('spellcheck',false);
                 jQuery('.rq_fieldrepi').on('click',function(e) {
                     var s = jQuery(this).html();
                     if(s != '')

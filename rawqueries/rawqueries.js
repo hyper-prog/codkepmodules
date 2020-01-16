@@ -38,4 +38,3 @@ function rawQEditorInsertAtCaret(areaId, text)
 
     txtarea.scrollTop = scrollPos;
 }
-
