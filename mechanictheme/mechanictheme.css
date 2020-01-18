@@ -4,7 +4,8 @@
 .float_right { float: right; }
 
 body { margin: 0px; padding: 0px; }
-.mechanicbaralwaysontopline { position: fixed; top: 0px; width: 100%; height: 40px;  margin: 0px auto; z-index: 99; overflow: hidden; }
+.mechanicbaralwaysontopline { position: fixed; top: 0px; width: 100%; height: 40px;  margin: 0px auto; z-index: 99; }
+.mecht_aot_buttonrow { display: block; overflow: hidden; }
 .headerplaceholder { display: block; width:100%; height: 40px; margin:0px; padding: 0px; }
 .content { margin: 5px; }
 

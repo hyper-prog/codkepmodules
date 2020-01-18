@@ -72,6 +72,7 @@ function mechanictheme_alwaysontop()
     print '</div>';
 
     print '<p class="statustextstyle float_left">'.$mechanictheme->statustext. '</p>';
+    print '<div class="mecht_aot_buttonrow float_right">';
     if(!$mechanictheme->topbuttons_disable_loginlogoutbutton)
     {
         if ($user->auth)
@@ -90,6 +91,7 @@ function mechanictheme_alwaysontop()
             return 0;
         return 1;
     });
+
     foreach($topbuttons as $btn)
     {
         if(isset($btn['text']) && isset($btn['url']) && 
@@ -102,7 +104,8 @@ function mechanictheme_alwaysontop()
                          isset($btn['fragment']) ? $btn['fragment'] : NULL));
        }
     }
-
+    print div('c','');
+    print '</div>';
     print div('c','');
     return ob_get_clean();
 }
