@@ -27,6 +27,7 @@ function hook_rawqueries_boot()
     $rawqueriesmodule_config->querymodules_skipfromlistcallback = '';
     $rawqueriesmodule_config->querymodules_runcounterbypasscallback = 'rawquerymodule_default_runcounterbypasscallback';
 
+    $rawqueriesmodule_config->queryeditor_disablemonacoeditor = false;
 
     //Non configurable items
     $rawqueriesmodule_config->querymodules_derivedptitle = '';
@@ -562,7 +563,11 @@ function pc_rawqueriesmodule_query()
     ob_start();
     set_title($rawqueriesmodule_config->querymodules_pathprefix . ' - ' . t("Run a query in the system"));
     add_css_file($rawqueriesmodule_config->modulecssloc);
+
     add_js_file(codkep_get_path("rawqueries","web") . "/rawqueries.js");
+    if(!$rawqueriesmodule_config->queryeditor_disablemonacoeditor)
+        add_js_file(codkep_get_path("rawqueries", "web") . '/monaco-editor/require.js');
+
     $r = rawqueries_dm_getquery_by_num($num);
 
     print '<table><tr><td>';
@@ -655,8 +660,8 @@ function pc_rawqueriesmodule_query()
                     $required_parameters_are_set = false;
                 else
                 {
-                    $ppakk[$pt[1].'_BARE']  = par($pt[1].'_year').'-'.par($pt[1].'_month');
-                    $ppakk[$pt[1].'_FIRST'] = par($pt[1].'_year').'-'.par($pt[1].'_month').'-01';
+                    $ppakk[$pt[1].'_BARE']  = par($pt[1].'_year').'-'.sprintf("%02d",par($pt[1].'_month'));
+                    $ppakk[$pt[1].'_FIRST'] = par($pt[1].'_year').'-'.sprintf("%02d",par($pt[1].'_month')).'-01';
                     $ppakk[$pt[1].'_LAST']  = date("Y-m-t", strtotime($ppakk[$pt[1].'_FIRST']));
                 }
             }
@@ -693,7 +698,7 @@ function pc_rawqueriesmodule_query()
     if(NODE_ACCESS_ALLOW == rawquerymodulequery_access($num,'update',$user))
     {
         $ct->cell(l(t('Edit query'), $rawqueriesmodule_config->querymodules_pathprefix . "/ajaxqueryeditor/" . $num,
-            ['class' => 'use-ajax rawqueriesbtnlnk rq_width200 rq_anim_swing rq_animhover_swing ']));
+            ['class' => 'use-ajax rawqueriesbtnlnk rq_width200 rq_anim_swing rq_animhover_swing '],['p' => $pstr]));
     }
 
     print $ct->get();
@@ -748,64 +753,103 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
     $cf = new HtmlForm('qeditform');
     $cf->opts(['id' => 'qeditformidentifier']);
     $cf->action_ajax($rawqueriesmodule_config->querymodules_pathprefix . "/ajaxqueryeditordoit/".$num);
-    $cf->text('t1','<table>');
+
+    par_def('p','textbase64');
+    if(par_ex('p'))
+        $cf->hidden('p', par('p'));
+
+    $cf->hidden('rqeditmode',$rawqueriesmodule_config->queryeditor_disablemonacoeditor ? 't':'m',['id'=>'rq_editormode']);
+    $cf->text('t1','<div class="rq_qeditorpanel">');
+    $cf->text('t11b','<div class="rq_qeditorline">');
     run_hook('rawqueries_extrafields_form','pos0',$cf,$r);
-    $cf->text('tr_p1b','<tr><td>');
-    $cf->select('select','qenable',$r['enabled'],['e' => t('Enabled'),'d' => t('Disabled')],['before' => '','after' => '']);
+    $cf->select('select','qenable',$r['enabled'],['e' => t('Enabled'),'d' => t('Disabled')],
+                ['before' => '<div class="rq_float_left">','after' => '</div>']);
     run_hook('rawqueries_extrafields_form','pos1',$cf,$r);
-    $cf->text('tr_p1e','</td></tr>');
-    $cf->textarea('dscr',$r['targetstr'],3,100,['id' => 'rqe_describeeditortxt','before' => '<tr><td>','after' => '</td></tr>']);
+    $cf->text('t11e','<div class="rq_clearboth"></div></div>');
+
+    $cf->text('t12b','<div class="rq_qeditorline">');
+    $cf->textarea('dscr',$r['targetstr'],0,0,[
+                    'disablercsize' => true,
+                    'id' => 'rqe_describeeditortxt',
+                    'class' => 'rq_fullwidthitem',
+                    'before' => '<div class="rq_w100p">',
+                    'after' => '</div>']);
+    $cf->text('t12e','</div>');
+
+    $cf->text('t13b','<div class="rq_qeditorline">');
     run_hook('rawqueries_extrafields_form','pos2',$cf,$r);
-    $cf->input('text','pars',$r['parameters'],
-                ['id' => 'rqe_parameteredit',
-                 'size' => 75,
-                 'before' => '<tr><td>'.t('Parameters').': ',
-                 'after' => ' <small>(STRING|DATE|YEARMONTH:'.t('Parameter name').':'.t('Parameter description').')</small></td></tr>']);
+    $cf->input('text','pars',$r['parameters'],[
+                    'id' => 'rqe_parameteredit',
+                    'size' => 75,
+                    'before' => ''.t('Parameters').': ',
+                    'after' => ' <small>(STRING|DATE|YEARMONTH:'.t('Parameter name').':'.t('Parameter description').')</small>']);
+    $cf->text('t13e','<div class="rq_clearboth"></div></div>');
+
     run_hook('rawqueries_extrafields_form','pos3',$cf,$r);
-    $cf->text('fr',$frarea,['before' => '<tr><td>','after' => '</td></tr>']);
-    $cf->textarea('qsql',$r['sqlstrng'],12,100,['id' => 'qe_qsql','before' => '<tr><td>','after' => '</td></tr>']);
+
+    $cf->text('t14b','<div class="rq_qeditorline">');
+    $cf->text('fr',$frarea,[
+                    'before' => '<div class="rq_float_left">',
+                    'after' => '</div>']);
+    $cf->text('t14e','<div class="rq_clearboth"></div></div>');
+
+    $cf->text('t15b','<div class="rq_qeditorline">');
+    $cf->textarea('qsql',$r['sqlstrng'],0,0,[
+                    'id' => 'sql_edit_input',
+                    'softreadonly' => ($rawqueriesmodule_config->queryeditor_disablemonacoeditor ? false : true ),
+                    'class' => 'rq_fullwidthitem pre_sql_edit_monacobox',
+                    'before' => '<div class="rq_w100p">',
+                    'after' => '</div>']);
+    $cf->text('sqleditc','<div id="sql_edit_monacobox"></div>',[
+                    'before' => '<div class="rq_fullwidthitem">',
+                    'after' => '</div>']);
+    $cf->text('t15e','</div>');
+
+    $cf->text('t16b','<div class="rq_qeditorline">');
     $cf->hidden('what','',['id' => 'todowhat']);
     run_hook('rawqueries_extrafields_form','pos4',$cf,$r);
     $cf->input('submit','qesmts',t('Trial run'),[
-        'before' => '<tr><td>',
-        'after' => '',
-        'onclick' => "jQuery('#todowhat').val('tryrun');"]);
+                    'before' => '<div class="rq_float_left">','after' => '</div>',
+                    'onclick' => "rq_getsql_str(); jQuery('#todowhat').val('tryrun');"]);
     $cf->input('submit','qesmts',t('Save'),[
-        'id' => 'rqedit_save_button',
-        'before' => '',
-        'after' => '',
-        'onclick' => "jQuery('#todowhat').val('save');"]);
+                    'id' => 'rqedit_save_button',
+                    'before' => '<div class="rq_float_left">','after' => '</div>',
+                    'onclick' => "rq_getsql_str(); jQuery('#todowhat').val('save');"]);
     $cf->input('submit','qesmts',t('Close editor'),[
-        'before' => '',
-        'after' => '',
-        'onclick' => "jQuery('#todowhat').val('close');"]);
-    $cf->input('submit', 'qesmts', t('Delete completely'), ['onclick' => "jQuery('#todowhat').val('delete');"]);
-
-    $cf->text('tr2','</td></tr>');
-
+                    'before' => '<div class="rq_float_left">','after' => '</div>',
+                    'onclick' => "jQuery('#todowhat').val('close');"]);
+    $cf->input('submit', 'qesmts', t('Delete completely'),[
+                    'before' => '<div class="rq_float_left">','after' => '</div>',
+                    'onclick' => "rq_getsql_str(); jQuery('#todowhat').val('delete');"]);
     run_hook('rawqueries_extrafields_form','pos5',$cf,$r);
+    $cf->text('resizers','<button id="rq_sqrs_hp">⯆</button><button id="rq_sqrs_hm">⯅</button>',[
+                    'before' => '<div class="rq_float_right">',
+                    'after' => '</div>']);
+    $cf->text('t16e','<div class="rq_clearboth"></div></div>');
+
     $lst_mod_txt = t('Unknown');
     if(strlen($r['modtime']) > 0 && strlen($r['modlogin']) > 0)
         $lst_mod_txt = substr($r['modtime'],0,19).' ('.$r['modlogin'].')';
     $cf->text('lmodtxt',
-              '<small>'.t('Last modified').': <span id="qe_lmodvals">'.$lst_mod_txt.'</span></small>',
-              ['id' => 'qe_lmodtxt','before' => '<tr><td>','after' => '</td></tr>']);
-    $cf->text('t2','</table><br/>');
+              '<small>'.t('Last modified').': <span id="qe_lmodvals">'.$lst_mod_txt.'</span></small>',[
+                    'id' => 'qe_lmodtxt',
+                    'before' => '<div class="rq_edit_lasmod_part">',
+                    'after' => '</div>']);
+
+    $cf->text('t2','</div><br/>');
+
     print '<div class="rq_qeblock">';
     print $cf->get();
     print '</div>';
+
+    $mypath = codkep_get_path('rawqueries','web');
+
     print "<script>
             jQuery(document).ready(function() {
-                jQuery('#qe_qsql').attr('spellcheck',false);
                 jQuery('.rq_fieldrepi').on('click',function(e) {
-                    var s = jQuery(this).html();
-                    if(s != '')
-                    {
-                        rawQEditorInsertAtCaret('qe_qsql','#'+jQuery(this).html());
-                        jQuery('#rqedit_save_button').addClass('rawqsqlchanged');
-                    }
+                    insertToMyCurrentEditor(jQuery(this).html());
                 });
-                jQuery('#qe_qsql').bind('input propertychange', function() {
+                jQuery('#sql_edit_input').bind('input propertychange', function() {
                     jQuery('#rqedit_save_button').addClass('rawqsqlchanged');
                 });
                 jQuery('#rqe_parameteredit').bind('input propertychange', function() {
@@ -814,6 +858,21 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
                 jQuery('#rqe_describeeditortxt').bind('input propertychange', function() {
                     jQuery('#rqedit_save_button').addClass('rawqsqlchanged');
                 });
+
+                jQuery('#rq_sqrs_hp').click(function(e) {
+                    rqeditChangeHeightOfEditArea(50);
+                    e.preventDefault();
+                });
+                jQuery('#rq_sqrs_hm').click(function(e) {
+                    rqeditChangeHeightOfEditArea(-50);
+                    e.preventDefault();
+                });
+
+                var h = rqeditSetHeightOfEditArea(300);
+                jQuery('#sql_edit_input').height(h).attr('spellcheck',false);;
+
+                if(jQuery('#rq_editormode').val() == 'm')
+                    rqeditFireupMonacoEditor('{$mypath}',h);
             });
         </script>";
     ajax_add_html('.query_editor_placeholder',ob_get_clean());
