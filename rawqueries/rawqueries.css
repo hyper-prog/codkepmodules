@@ -7,6 +7,18 @@
     clear: both;
 }
 
+.rqe_fdlg_htable {
+    border-collapse: collapse;
+    border: 1px solid #888888;
+}
+.rqe_fdlg_htable td {
+    border: 1px solid #888888;
+}
+.rqe_fdlg_htable th {
+    border: 1px solid #eeeeee;
+    color: #efefef;
+    background-color: #454545;
+}
 .rawqueriesmainlist table {
     border-collapse:collapse;
     border: 1px solid #494949;

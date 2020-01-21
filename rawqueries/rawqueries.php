@@ -739,13 +739,17 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
         $tt = '';
         $bgc = '#dddddd';
         $fr = get_field_repository_definition($fridx);
+        $data_dlg_fields = '';
         if(isset($fr['cellopts']['background-color']))
             $bgc = $fr['cellopts']['background-color'];
         if(isset($fr['headertext']) || isset($fr['description']))
             $tt = " title=\"" .
                 (isset($fr['headertext']) ? $fr['headertext'] : '') . ':' .
                 (isset($fr['description']) ? $fr['description'] : '')."\"";
-        $frarea .= "<div class=\"rq_fieldrepi\" style=\"background-color: $bgc;\" $tt>$fridx</div>";
+        if(isset($fr['get_dialog_fields']))
+            $data_dlg_fields = $fr['get_dialog_fields'];
+        $frarea .= "<div class=\"rq_fieldrepi\" data-dlgfd=\"$data_dlg_fields\" style=\"background-color: $bgc;\" $tt>".
+                    "$fridx</div>";
     }
     $frarea .= "<div class=\"rq_clearboth\"></div>";
     $frarea .= '</div>';
@@ -845,9 +849,22 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
     $mypath = codkep_get_path('rawqueries','web');
 
     print "<script>
+            var local_texts = [
+            '".t('Set this feature')."',
+            '".t('Value of the feature')."',
+            '".t('Keyword')."',
+            '".t('Header cell text')."',
+            '".t('Column background color')."',
+            '".t('Column width (excel)')."',
+            '".t('Preview code')."',
+            '".t('Cancel')."',
+            '".t('Insert code')."',
+            '".t('Set field repository definiton...')."'];
+
             jQuery(document).ready(function() {
                 jQuery('.rq_fieldrepi').on('click',function(e) {
-                    insertToMyCurrentEditor(jQuery(this).html());
+                    var bi = jQuery(this);
+                    rqeditFieldrepbuttonActivated(bi.attr('data-dlgfd'),bi.html(),local_texts);
                 });
                 jQuery('#sql_edit_input').bind('input propertychange', function() {
                     jQuery('#rqedit_save_button').addClass('rawqsqlchanged');

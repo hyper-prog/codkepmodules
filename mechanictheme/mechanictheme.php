@@ -194,6 +194,8 @@ function mechanictheme_body($content,$route)
     print "<div class=\"content\">\n";
     print $content->generated;
     print "</div>\n"; //content
+    print "<div id=\"dialog_placeholder\"></div>";
+    print "<div class=\"c\"></div>\n";
 
     print " <div id=\"footer\" class=\"footerbgcolor\">\n";
     print "  <div class=\"section\">\n";

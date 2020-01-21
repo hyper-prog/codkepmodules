@@ -50,6 +50,16 @@ function hook_rawquerieshu_init()
         'Delete completely' => 'Teljes törlés',
         'Sample query, show only _snum_ results!' => 'Minta lekérdezés, csak _snum_ találat megjelenítése!',
         'Raw queries page' => 'Nyers lekérdezések oldala',
+        'Set this feature' => 'A tulajdonság beállítása',
+        'Value of the feature' => 'A tulajdonság értéke',
+        'Keyword' => 'Kulcsszó',
+        'Header cell text' => 'Fejléc cella szöveg',
+        'Column background color' => 'Oszlop háttérszín',
+        'Column width (excel)' => 'Oszlop szélesség (excel)',
+        'Preview code' => 'Kód előnézet',
+        'Cancel' => 'Mégsem',
+        'Insert code' => 'Kód beszúrása',
+        'Set field repository definiton...' => 'Mező definíciós elem beállítása...',
     ]);
 }
 
