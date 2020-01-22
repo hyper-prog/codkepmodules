@@ -739,13 +739,17 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
         $tt = '';
         $bgc = '#dddddd';
         $fr = get_field_repository_definition($fridx);
+        $titletext = '';
+        if(isset($fr['description']) && strlen($fr['description']) > 0)
+            $titletext = $fr['description'];
+        elseif(isset($fr['headertext']) && strlen($fr['headertext']) > 0)
+            $titletext = $fr['headertext'];
+
         $data_dlg_fields = '';
         if(isset($fr['cellopts']['background-color']))
             $bgc = $fr['cellopts']['background-color'];
         if(isset($fr['headertext']) || isset($fr['description']))
-            $tt = " title=\"" .
-                (isset($fr['headertext']) ? $fr['headertext'] : '') . ':' .
-                (isset($fr['description']) ? $fr['description'] : '')."\"";
+            $tt = " title=\"" . $titletext . "\"";
         if(isset($fr['get_dialog_fields']))
             $data_dlg_fields = $fr['get_dialog_fields'];
         $frarea .= "<div class=\"rq_fieldrepi\" data-dlgfd=\"$data_dlg_fields\" style=\"background-color: $bgc;\" $tt>".
