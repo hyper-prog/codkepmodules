@@ -22,6 +22,9 @@ function hook_mechanictheme_boot()
     $mechanictheme->dropdownmenu_structure_prefix = '';
     $mechanictheme->dropdownmenu_structure_suffix = '';
 
+    $mechanictheme->controlbar_loginroute = 'user/login';
+    $mechanictheme->controlbar_logoutroute = 'user/logout';
+
     $mechanictheme->dropdownmenu_startmenupics = codkep_get_path('mechanictheme','web') . '/images/menu.png';
     $mechanictheme->menu_add_samplemenu_if_empty = true;
     $mechanictheme->dropdownmenu_width = 200;
@@ -76,9 +79,11 @@ function mechanictheme_alwaysontop()
     if(!$mechanictheme->topbuttons_disable_loginlogoutbutton)
     {
         if ($user->auth)
-            print div("headerbutton logoutbtn float_right", l(t("Logout"), "user/logout", ["title" => t('Logout from the site')]));
+            print div("headerbutton logoutbtn float_right",
+                        l(t("Logout"), $mechanictheme->controlbar_logoutroute, ["title" => t('Logout from the site')]));
         else
-            print div("headerbutton logoutbtn float_right", l(t("Login"), "user/login", ["title" => t('Login to the site')]));
+            print div("headerbutton logoutbtn float_right",
+                        l(t("Login"), $mechanictheme->controlbar_loginroute, ["title" => t('Login to the site')]));
     }
 
     $topbuttons = run_hook('mechanictheme_topbuttons');
