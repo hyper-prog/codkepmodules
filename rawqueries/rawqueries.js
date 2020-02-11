@@ -147,6 +147,206 @@ function rqeditFieldrepUpdatePreview()
     jQuery('#rqe_fdlg_preview').html(deft);
 }
 
+function rqeditFireupParstore()
+{
+    var f = jQuery('#rqe_parameteredit').val();
+    var farr = f.split(';');
+    for(var i = 0;i < farr.length;i++)
+    {
+        var parts = farr[i].split(':');
+        if(partypes.indexOf(parts[0]) != -1)
+            parstore.push({
+                type: parts[0],
+                keyw: parts[1],
+                descr: parts[2],
+                extra: (parts.length == 3 ? '' : parts[3] )
+            });
+    }
+
+    rqeditParameditUpdateParbuttons();
+    jQuery('#rqe_add_par_btn').click(function(e) {
+        rqeditAddEditParameter('');
+        e.preventDefault();
+    });
+    jQuery(document).on('click','.rqe_pedit_btn',function(e) {
+        rqeditAddEditParameter(jQuery(this).html());
+        e.preventDefault();
+    });
+    jQuery(document).on('click','.rqe_paredit_parsubs_insert',function(e) {
+        insertToMyCurrentEditor(jQuery(this).html());
+        e.preventDefault();
+    });
+}
+
+function rqeditParameditUpdateParbuttons()
+{
+    htmlcontent = '';
+    defstr = '';
+    for(var i = 0;i < parstore.length;++i)
+    {
+        if(defstr != '')
+            defstr += ';';
+        defstr += parstore[i].type + ':' + parstore[i].keyw + ':' + parstore[i].descr;
+
+        if(partypeopts[parstore[i].type][0])
+            defstr += ':' + parstore[i].extra;
+        htmlcontent += '<button class="float_left rqe_pedit_btn">'+parstore[i].keyw+'</button>';
+    }
+    jQuery('.rqe_par_lst_cont').html(htmlcontent);
+
+    if(jQuery('#rqe_parameteredit').val() != defstr)
+    {
+        jQuery('#rqedit_save_button').addClass('rawqsqlchanged');
+        jQuery('#rqe_parameteredit').val(defstr);
+    }
+}
+
+function rqeditAddEditParameter(pkeyw)
+{
+    cc = {kw: '', ty: partypes[0], ds: '', ex: ''};
+    if(pkeyw != '')
+        for(var i=0;i<parstore.length;++i)
+            if(parstore[i].keyw == pkeyw)
+            {
+                cc.kw = parstore[i].keyw;
+                cc.ty = parstore[i].type;
+                cc.ds = parstore[i].descr;
+                cc.ex = parstore[i].extra;
+                break;
+            }
+
+    dlgbody = '';
+
+    dlgbody += '<div><table class="rqe_fdlg_htable" style="border-collapse: collapse; border: 1px solid #888888;">';
+
+    dlgbody += '<tr>';
+    dlgbody += '<td align="left">'+local_texts[11]+'</td>';
+    dlgbody += '<td align="left"><select name="rqe_paredit_typesel" id="rqe_paredit_typesel">';
+    for(var i = 0;i < partypes.length;++i)
+        dlgbody += '<option value="'+partypes[i]+'"'+ (partypes[i] == cc.ty ? ' selected' : '') +'>'+partypes[i]+'</option>';
+    dlgbody += '</select></td>';
+    dlgbody += '</tr>';
+
+    dlgbody += '<tr>';
+    dlgbody += '<td align="left">'+local_texts[12]+'</td>';
+    dlgbody += '<td align="left"><input id="rqe_paredit_keywordib" type="text" value="'+cc.kw+'" size="40"></td>';
+    dlgbody += '</tr>';
+
+    dlgbody += '<tr>';
+    dlgbody += '<td align="left" id="rqe_extraline_descr"></td>';
+    dlgbody += '<td align="left"><input id="rqe_paredit_typeextra" type="text" value="'+cc.ex+'" size="40" disabled></td>';
+    dlgbody += '</tr>';
+
+    dlgbody += '<tr>';
+    dlgbody += '<td align="left">'+local_texts[13]+'</td>';
+    dlgbody += '<td align="left"><input id="rqe_paredit_describib" type="text" value="'+cc.ds+'" size="40"></td>';
+    dlgbody += '</tr>';
+
+    dlgbody += '<tr>';
+    dlgbody += '<td align="left" style="font-style: italic;">'+local_texts[14]+'</td>';
+    dlgbody += '<td colspan="2"><pre id="rqe_paredit_subs"></pre></td>';
+    dlgbody += '</tr>';
+
+    dlgbody += '<tr>';
+    dlgbody += '<td colspan="3"><button id="rqe_paredit_action_cancel" style="font-weight: bold; padding: 5px;">'+local_texts[7]+'</button>';
+    if(cc.kw == '')
+    {
+        dlgbody += '<button id="rqe_paredit_action_insert" style="font-weight: bold; padding: 5px;">'+local_texts[17]+'</button>';
+    }
+    else
+    {
+        dlgbody += '<button id="rqe_paredit_action_save" style="font-weight: bold; padding: 5px;">'+local_texts[15]+'</button>';
+        dlgbody += '<button id="rqe_paredit_action_delete" style="font-weight: bold; padding: 5px;">'+local_texts[16]+'</button>';
+    }
+    dlgbody += '</td></tr>';
+
+    dlgbody += '</table></div>';
+
+    prepare_ckdialog(local_texts[10],dlgbody);
+    popup_ckdialog();
+
+    jQuery('#rqe_paredit_typesel').change(function(e) { rqeditParameditUpdatePreview(); });
+    jQuery('#rqe_paredit_keywordib').on('input',function(e) { rqeditParameditUpdatePreview(); });
+    jQuery('#rqe_paredit_typeextra').on('input',function(e) { rqeditParameditUpdatePreview(); });
+    jQuery('#rqe_paredit_describib').on('input',function(e) { rqeditParameditUpdatePreview(); });
+
+    jQuery('#rqe_paredit_action_cancel').click(function(){
+        close_ckdialog();
+    });
+    jQuery('#rqe_paredit_action_insert').click(function(){
+        parstore.push({
+            type: jQuery('#rqe_paredit_typesel').val(),
+            keyw: jQuery('#rqe_paredit_keywordib').val(),
+            descr: jQuery('#rqe_paredit_describib').val(),
+            extra: jQuery('#rqe_paredit_typeextra').val() });
+        rqeditParameditUpdateParbuttons();
+        close_ckdialog();
+    });
+    jQuery('#rqe_paredit_action_save').click(function(){
+        for(var i = 0;i < parstore.length;++i)
+            if(parstore[i].keyw == pkeyw)
+            {
+                parstore[i].keyw = jQuery('#rqe_paredit_keywordib').val();
+                parstore[i].type = jQuery('#rqe_paredit_typesel').val();
+                parstore[i].descr = jQuery('#rqe_paredit_describib').val();
+                parstore[i].extra = jQuery('#rqe_paredit_typeextra').val();
+                break;
+            }
+        rqeditParameditUpdateParbuttons();
+        close_ckdialog();
+    });
+    jQuery('#rqe_paredit_action_delete').click(function(){
+        for(var i = 0;i < parstore.length;++i)
+            if(parstore[i].keyw == pkeyw) {
+                parstore.splice(i,1);
+                break;
+            }
+        rqeditParameditUpdateParbuttons();
+        close_ckdialog();
+    });
+
+    rqe_lasttype = '';
+    rqeditParameditUpdatePreview();
+    jQuery('#rqe_paredit_keywordib').focus();
+}
+
+function rqeditParameditUpdatePreview()
+{
+    var type = jQuery('#rqe_paredit_typesel').val();
+    var keyw = jQuery('#rqe_paredit_keywordib').val();
+    var mkeyw = keyw.replace(/[^0-9a-zA-Z_]/g,'');
+    if(keyw != mkeyw)
+        jQuery('#rqe_paredit_keywordib').val(keyw = mkeyw);
+
+    var descr = jQuery('#rqe_paredit_describib').val();
+    var mdescr = descr.replace(';','').replace(':','');
+    if(descr != mdescr)
+        jQuery('#rqe_paredit_describib').val(mdescr);
+
+    var extra = jQuery('#rqe_paredit_typeextra').val();
+    var mextra = extra.replace(';','').replace(':','');
+    if(extra != mextra)
+        jQuery('#rqe_paredit_typeextra').val(mextra);
+
+    var subs = [];
+    if(keyw != '')
+    {
+        subpatterns = partypeopts[type][2].split(',');
+        for (var j = 0;j < subpatterns.length; ++j)
+            subs.push('<button title="'+local_texts[18]+'" class="rqe_paredit_parsubs_insert">'+
+                      subpatterns[j].replace('@', keyw)  +
+                      '</button>');
+    }
+    jQuery('#rqe_paredit_subs').html(subs.join(','));
+
+    if(rqe_lasttype != type)
+    {
+        jQuery('#rqe_paredit_typeextra').prop("disabled", ! partypeopts[type][0]);
+        jQuery('#rqe_extraline_descr').html(partypeopts[type][1]);
+        rqe_lasttype = type;
+    }
+}
+
 function rqeditChangeHeightOfEditArea(changewith)
 {
     var h;

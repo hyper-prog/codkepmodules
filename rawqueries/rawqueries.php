@@ -627,7 +627,7 @@ function pc_rawqueriesmodule_query()
             }
             if($pt[0] == 'STRING')
             {
-                $pf->input_p('text',$pt[1],'',[
+                $pf->input_p('text',$pt[1],(isset($pt[3]) ? $pt[3] : ''),[
                     'before' => '<tr><td>'.$expltext.'</td><td>',
                     'after' => '</td></tr>',
                     'no_par_load' => $skip_load_values]);
@@ -664,6 +664,52 @@ function pc_rawqueriesmodule_query()
                     $ppakk[$pt[1].'_FIRST'] = par($pt[1].'_year').'-'.sprintf("%02d",par($pt[1].'_month')).'-01';
                     $ppakk[$pt[1].'_LAST']  = date("Y-m-t", strtotime($ppakk[$pt[1].'_FIRST']));
                 }
+            }
+            if($pt[0] == 'SELECT' && isset($pt[3]))
+            {
+                $opts = explode(',',$pt[3]);
+                $optssec = [];
+                foreach($opts as $o)
+                {
+                    $op = explode('#',$o);
+                    $optssec[$op[0]] = isset($op[1]) ? $op[1] : $op[0];
+                }
+                $pf->select_p('select',$pt[1],'',$optssec,[
+                    'before' => '<tr><td>'.$expltext.'</td><td>',
+                    'no_par_load' => $skip_load_values]);
+                if(!par_ex($pt[1]) || par($pt[1]) == '')
+                    $required_parameters_are_set = false;
+                else
+                    $ppakk[$pt[1]] = par($pt[1]);
+            }
+            if($pt[0] == 'OPTIONS' && isset($pt[3]))
+            {
+                $opts = explode(',',$pt[3]);
+                $res1='';
+                $res2='';
+                $res3='';
+                foreach($opts as $o)
+                {
+                    $op = explode('#',$o);
+                    $pf->input_p('checkbox',$pt[1].'_'.$op[0],false,[
+                            'before' => '<tr><td>'.$expltext.' - '.(isset($op[1]) ? $op[1] : $op[0]).'</td><td>',
+                            'after' => '</td></tr>',
+                            'no_par_load' => $skip_load_values]);
+                    if(!par_ex($pt[1].'_'.$op[0]))
+                        $required_parameters_are_set = false;
+                    else
+                    {
+                        if(par($pt[1].'_'.$op[0]) == 'on')
+                        {
+                            $res1 .= ($res1 == '' ? '' : ',') . $op[0];
+                            $res2 .= ($res2 == '' ? '' : ',') ."'" .$op[0]."'";
+                            $res3 .= ($res3 == '' ? '' : ',') .'"' .$op[0].'"';
+                        }
+                    }
+                }
+                $ppakk[$pt[1].'_NOQUOTE'] = $res1;
+                $ppakk[$pt[1].'_SIMPLEQUOTE'] = $res2;
+                $ppakk[$pt[1].'_DOUBLEQUOTE'] = $res3;
             }
         }
 
@@ -786,12 +832,15 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
 
     $cf->text('t13b','<div class="rq_qeditorline">');
     run_hook('rawqueries_extrafields_form','pos2',$cf,$r);
-    $cf->input('text','pars',$r['parameters'],[
-                    'id' => 'rqe_parameteredit',
-                    'size' => 75,
-                    'before' => ''.t('Parameters').': ',
-                    'after' => ' <small>(STRING|DATE|YEARMONTH:'.t('Parameter name').':'.t('Parameter description').')</small>']);
-    $cf->text('t13e','<div class="rq_clearboth"></div></div>');
+    $cf->text('text',
+        '<div>
+            <button id="rqe_add_par_btn" class="float_left">'.t('+Parameter').'</button>
+            <div class="float_left" style="font-weight: strong;">&nbsp;:&nbsp;</div>
+            <div class="rqe_par_lst_cont float_left"></div>
+            <div class="rq_clearboth"></div>
+        </div>');
+    $cf->input('hidden','pars',$r['parameters'],['id' => 'rqe_parameteredit']);
+    $cf->text('t13e','<hr/><div class="rq_clearboth"></div></div>');
 
     run_hook('rawqueries_extrafields_form','pos3',$cf,$r);
 
@@ -863,13 +912,37 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
             '".t('Preview code')."',
             '".t('Cancel')."',
             '".t('Insert code')."',
-            '".t('Set field repository definiton...')."'];
+            '".t('Set field repository definiton...')."',
+            '".t('Set parameter properties...')."',
+            '".t('Type of parameter')."',
+            '".t('Parameter substitution keyword')."',
+            '".t('Parameter describe')."',
+            '".t('Available substitutes')."',
+            '".t('Save')."',
+            '".t('Delete')."',
+            '".t('Add parameter')."',
+            '".t('Insert into the editor panel to the cursor position')."'];
 
+            var parstore = [];
+            var partypes = ['STRING','DATE','YEARMONTH','SELECT','OPTIONS'];
+            var partypeopts = {
+                    'STRING'   : [true ,'".t('Initial value of the string')."','@'],
+                    'DATE'     : [false,'','@'],
+                    'YEARMONTH': [false,'','@_BARE, @_FIRST, @_LAST'],
+                    'SELECT'   : [true ,'".t('Comma separated list of possible values # selected options-description pairs<br/>(value1#descr1,value2#descr2)')."',
+                                        '@'],
+                    'OPTIONS'  : [true ,'".t('Comma separated list of switchable # selected options-description pairs<br/>(value1#descr1,value2#descr2)')."',
+                                        '@_NOQUOTE, @_SIMPLEQUOTE, @_DOUBLEQUOTE']
+                };
+            var rqe_lasttype = '';
             jQuery(document).ready(function() {
                 jQuery('.rq_fieldrepi').on('click',function(e) {
                     var bi = jQuery(this);
                     rqeditFieldrepbuttonActivated(bi.attr('data-dlgfd'),bi.html(),local_texts);
                 });
+
+                rqeditFireupParstore();
+
                 jQuery('#sql_edit_input').bind('input propertychange', function() {
                     jQuery('#rqedit_save_button').addClass('rawqsqlchanged');
                 });

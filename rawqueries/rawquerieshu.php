@@ -60,6 +60,18 @@ function hook_rawquerieshu_init()
         'Cancel' => 'Mégsem',
         'Insert code' => 'Kód beszúrása',
         'Set field repository definiton...' => 'Mező definíciós elem beállítása...',
+        'Set parameter properties...' => 'Paraméter tulajdonságok beállítása...',
+        'Type of parameter' => 'Paraméter típusa',
+        'Parameter substitution keyword' => 'Paraméter helyettesítő kulcsszó',
+        'Parameter describe' => 'Paraméter leírás',
+        'Available substitutes' => 'Használható helyettesítők',
+        'Comma separated list of possible values # selected options-description pairs<br/>(value1#descr1,value2#descr2)' =>
+            'Vesszővel felsorolt listája a # jellel elválasztott lehetséges érték-leírás pároknak<br/>(ertek1#Leírás1,ertek2#Leírás2)',
+        'Initial value of the string' => 'A szöveg kezdőértéke',
+        'Add parameter' => 'Paraméter felvétele',
+        'Insert into the editor panel to the cursor position' => 'Beszúrás a kódszerkesztőbe a kurzorpozícióba',
+        'Comma separated list of switchable # selected options-description pairs<br/>(value1#descr1,value2#descr2)' =>
+            'Vesszővel felsorolt listája a # jellel elválasztott választható érték-leírás pároknak<br/>(ertek1#Leírás1,ertek2#Leírás2)',
     ]);
 }
 
