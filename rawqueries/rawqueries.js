@@ -190,7 +190,7 @@ function rqeditParameditUpdateParbuttons()
 
         if(partypeopts[parstore[i].type][0])
             defstr += ':' + parstore[i].extra;
-        htmlcontent += '<button class="float_left rqe_pedit_btn">'+parstore[i].keyw+'</button>';
+        htmlcontent += '<button class="rq_float_left rqe_pedit_btn">'+parstore[i].keyw+'</button>';
     }
     jQuery('.rqe_par_lst_cont').html(htmlcontent);
 

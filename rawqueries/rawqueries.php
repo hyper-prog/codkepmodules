@@ -181,7 +181,7 @@ function hook_rawqueries_required_sql_schema()
         'targetstr'  => sql_t('longtext_type') . " NOT NULL DEFAULT ''",
         'sqlstrng'   => sql_t('longtext_type') . " DEFAULT ''",
         'num'        => "NUMERIC DEFAULT 0",
-        'parameters' => "VARCHAR(256) DEFAULT ''",
+        'parameters' => sql_t('longtext_type') . " DEFAULT ''",
         'enabled'    => "VARCHAR(1) DEFAULT 'e'",
         'runcounter' => "NUMERIC(5,0) DEFAULT 0",
         'modlogin'   => "VARCHAR(128)",
@@ -682,7 +682,7 @@ function pc_rawqueriesmodule_query()
                 else
                     $ppakk[$pt[1]] = par($pt[1]);
             }
-            if($pt[0] == 'OPTIONS' && isset($pt[3]))
+            if($pt[0] == 'MULTISELECT' && isset($pt[3]))
             {
                 $opts = explode(',',$pt[3]);
                 $res1='';
@@ -834,9 +834,9 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
     run_hook('rawqueries_extrafields_form','pos2',$cf,$r);
     $cf->text('text',
         '<div>
-            <button id="rqe_add_par_btn" class="float_left">'.t('+Parameter').'</button>
-            <div class="float_left" style="font-weight: strong;">&nbsp;:&nbsp;</div>
-            <div class="rqe_par_lst_cont float_left"></div>
+            <button id="rqe_add_par_btn" class="rq_float_left">'.t('+Parameter').'</button>
+            <div class="rq_float_left" style="font-weight: strong;">&nbsp;:&nbsp;</div>
+            <div class="rqe_par_lst_cont rq_float_left"></div>
             <div class="rq_clearboth"></div>
         </div>');
     $cf->input('hidden','pars',$r['parameters'],['id' => 'rqe_parameteredit']);
@@ -924,15 +924,17 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
             '".t('Insert into the editor panel to the cursor position')."'];
 
             var parstore = [];
-            var partypes = ['STRING','DATE','YEARMONTH','SELECT','OPTIONS'];
+            var partypes = ['STRING','DATE','YEARMONTH','SELECT','MULTISELECT'];
             var partypeopts = {
-                    'STRING'   : [true ,'".t('Initial value of the string')."','@'],
-                    'DATE'     : [false,'','@'],
-                    'YEARMONTH': [false,'','@_BARE, @_FIRST, @_LAST'],
-                    'SELECT'   : [true ,'".t('Comma separated list of possible values # selected options-description pairs<br/>(value1#descr1,value2#descr2)')."',
-                                        '@'],
-                    'OPTIONS'  : [true ,'".t('Comma separated list of switchable # selected options-description pairs<br/>(value1#descr1,value2#descr2)')."',
-                                        '@_NOQUOTE, @_SIMPLEQUOTE, @_DOUBLEQUOTE']
+                'STRING'      : [true ,'".t('Initial value of the string')."','@'],
+                'DATE'        : [false,'','@'],
+                'YEARMONTH'   : [false,'','@_BARE, @_FIRST, @_LAST'],
+                'SELECT'      : [true ,
+                                 '".t('Comma separated list of possible values # selected options-description pairs<br/>(value1#descr1,value2#descr2)')."',
+                                 '@'],
+                'MULTISELECT' : [true ,
+                                 '".t('Comma separated list of switchable # selected options-description pairs<br/>(value1#descr1,value2#descr2)')."',
+                                 '@_NOQUOTE, @_SIMPLEQUOTE, @_DOUBLEQUOTE']
                 };
             var rqe_lasttype = '';
             jQuery(document).ready(function() {
