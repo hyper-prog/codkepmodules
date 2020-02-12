@@ -75,6 +75,7 @@ function hook_rawquerieshu_init()
         'Add new parameter...' => 'Új paraméter hozzáadása...',
         'Show/edit current (raw) parameter string...' => 'Aktuális (nyers) paraméter definíció megtekintése/szerkesztése...',
         'Full raw parameter definition text' => 'Teljes nyers paraméter definíció',
+        '+Parameter' => '+Paraméter',
     ]);
 }
 
