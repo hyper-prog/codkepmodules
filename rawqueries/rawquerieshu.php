@@ -72,6 +72,9 @@ function hook_rawquerieshu_init()
         'Insert into the editor panel to the cursor position' => 'Beszúrás a kódszerkesztőbe a kurzorpozícióba',
         'Comma separated list of switchable # selected options-description pairs<br/>(value1#descr1,value2#descr2)' =>
             'Vesszővel felsorolt listája a # jellel elválasztott választható érték-leírás pároknak<br/>(ertek1#Leírás1,ertek2#Leírás2)',
+        'Add new parameter...' => 'Új paraméter hozzáadása...',
+        'Show/edit current (raw) parameter string...' => 'Aktuális (nyers) paraméter definíció megtekintése/szerkesztése...',
+        'Full raw parameter definition text' => 'Teljes nyers paraméter definíció',
     ]);
 }
 

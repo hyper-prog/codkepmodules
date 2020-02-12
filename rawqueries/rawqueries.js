@@ -149,6 +149,30 @@ function rqeditFieldrepUpdatePreview()
 
 function rqeditFireupParstore()
 {
+    rqeditParseParameterDefinitionString();
+    rqeditParameditUpdateParbuttons();
+
+    jQuery('#rqe_add_par_btn').click(function(e) {
+        rqeditAddEditParameter('');
+        e.preventDefault();
+    });
+    jQuery('#rqe_showedit_par_btn').click(function(e) {
+        rqeditShowEditFullParameterstring();
+        e.preventDefault();
+    });
+    jQuery(document).on('click','.rqe_pedit_btn',function(e) {
+        rqeditAddEditParameter(jQuery(this).html());
+        e.preventDefault();
+    });
+    jQuery(document).on('click','.rqe_paredit_parsubs_insert',function(e) {
+        insertToMyCurrentEditor(jQuery(this).html());
+        e.preventDefault();
+    });
+}
+
+function rqeditParseParameterDefinitionString()
+{
+    parstore = [];
     var f = jQuery('#rqe_parameteredit').val();
     var farr = f.split(';');
     for(var i = 0;i < farr.length;i++)
@@ -162,20 +186,6 @@ function rqeditFireupParstore()
                 extra: (parts.length == 3 ? '' : parts[3] )
             });
     }
-
-    rqeditParameditUpdateParbuttons();
-    jQuery('#rqe_add_par_btn').click(function(e) {
-        rqeditAddEditParameter('');
-        e.preventDefault();
-    });
-    jQuery(document).on('click','.rqe_pedit_btn',function(e) {
-        rqeditAddEditParameter(jQuery(this).html());
-        e.preventDefault();
-    });
-    jQuery(document).on('click','.rqe_paredit_parsubs_insert',function(e) {
-        insertToMyCurrentEditor(jQuery(this).html());
-        e.preventDefault();
-    });
 }
 
 function rqeditParameditUpdateParbuttons()
@@ -345,6 +355,38 @@ function rqeditParameditUpdatePreview()
         jQuery('#rqe_extraline_descr').html(partypeopts[type][1]);
         rqe_lasttype = type;
     }
+}
+
+function rqeditShowEditFullParameterstring()
+{
+    dlgbody = '';
+
+    var f = jQuery('#rqe_parameteredit').val();
+
+    dlgbody += '<center>';
+    dlgbody += '<textarea style="width:90%;" id="rqe_paredit_fullpardef" rows="4">'+f+'</textarea>';
+    dlgbody += '<br/><br/>';
+    dlgbody += '<span>';
+    dlgbody += '<button id="rqe_fullparedit_action_cancel" style="font-weight: bold; padding: 5px;">'+local_texts[7]+'</button>';
+    dlgbody += '<button id="rqe_fullparedit_action_save" style="font-weight: bold; padding: 5px;">'+local_texts[15]+'</button>';
+    dlgbody += '</span></center>';
+
+    prepare_ckdialog(local_texts[19],dlgbody);
+    popup_ckdialog();
+
+    jQuery('#rqe_fullparedit_action_cancel').click(function(){
+        close_ckdialog();
+    });
+
+    jQuery('#rqe_fullparedit_action_save').click(function(){
+        jQuery('#rqe_parameteredit').val(jQuery('#rqe_paredit_fullpardef').val());
+        rqeditParseParameterDefinitionString();
+        rqeditParameditUpdateParbuttons();
+        jQuery('#rqedit_save_button').addClass('rawqsqlchanged');
+        close_ckdialog();
+    });
+
+    jQuery('#rqe_paredit_fullpardef').focus();
 }
 
 function rqeditChangeHeightOfEditArea(changewith)

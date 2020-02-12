@@ -834,7 +834,10 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
     run_hook('rawqueries_extrafields_form','pos2',$cf,$r);
     $cf->text('text',
         '<div>
-            <button id="rqe_add_par_btn" class="rq_float_left">'.t('+Parameter').'</button>
+            <button id="rqe_add_par_btn" class="rq_float_left" title="'.
+                t('Add new parameter...').'">'.t('+Parameter').'</button>
+            <button id="rqe_showedit_par_btn" class="rq_float_left" title="'.
+                t('Show/edit current (raw) parameter string...').'">*</button>
             <div class="rq_float_left" style="font-weight: strong;">&nbsp;:&nbsp;</div>
             <div class="rqe_par_lst_cont rq_float_left"></div>
             <div class="rq_clearboth"></div>
@@ -921,7 +924,8 @@ function aj_rawqueriesmodule_ajaxqueryeditor()
             '".t('Save')."',
             '".t('Delete')."',
             '".t('Add parameter')."',
-            '".t('Insert into the editor panel to the cursor position')."'];
+            '".t('Insert into the editor panel to the cursor position')."',
+            '".t('Full raw parameter definition text')."'];
 
             var parstore = [];
             var partypes = ['STRING','DATE','YEARMONTH','SELECT','MULTISELECT'];
