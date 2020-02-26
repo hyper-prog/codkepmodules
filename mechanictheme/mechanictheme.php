@@ -102,7 +102,8 @@ function mechanictheme_alwaysontop()
         if(isset($btn['text']) && isset($btn['url']) && 
            strlen($btn['text']) > 0 && strlen($btn['url']) > 0)
         {
-            print div("headerbutton refreshbtn float_right",
+            print div("headerbutton float_right" .
+                       (isset($btn['extradivclasses']) ? (' ' . $btn['extradivclasses']) : ''),
                        l($btn['text'],$btn['url'],
                          isset($btn['options']) ? $btn['options'] : [],
                          isset($btn['query']) ? $btn['query'] : [],
