@@ -83,7 +83,7 @@ function get_comment_block($container,$refid)
     ob_start();
     $r = sql_exec("SELECT cid,cmmt.uid,created,body,ut.$usrnamecol AS uname
                    FROM comment_$container AS cmmt
-                   INNER JOIN $usrtable AS ut ON ut.uid = cmmt.uid
+                   LEFT OUTER JOIN $usrtable AS ut ON ut.uid = cmmt.uid
                    WHERE ref = :refid
                    ORDER BY created",
             [':refid' => $refid]);
@@ -96,7 +96,7 @@ function get_comment_block($container,$refid)
     while($rec = $r->fetch())
     {
         $erasable = false;
-        if($user->uid == $rec['uid'])
+        if($user->auth && $user->uid == $rec['uid'])
         {
             $t_created = (new DateTime($rec['created']))->format('U');
             if(($t_curr-$t_created) < $site_config->comment_delete_own_until_sec  &&
@@ -105,7 +105,7 @@ function get_comment_block($container,$refid)
         }
         print call_user_func_array($site_config->acitvity_comment_renderer_callback,
                     [$container,$rec['cid'],
-                     $rec['uname'],
+                     $rec['uname'] == '' ? t('Unauthenticated user'): $rec['uname'],
                      $rec['created'],
                      $rec['body'],
                      $erasable]);
@@ -161,7 +161,7 @@ function addnewcomment_comment()
     ajax_add_append("#showcommentarea_$refid",
         call_user_func_array($site_config->acitvity_comment_renderer_callback,
                          [$container,$cid,$user->name,t('Just now'),
-                          $bodytext,$site_config->comment_delete_own_until_sec > 0]));
+                          $bodytext,$user->auth && $site_config->comment_delete_own_until_sec > 0]));
     ajax_add_val('#new_comment_area','');
 }
 

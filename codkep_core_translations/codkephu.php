@@ -96,6 +96,7 @@ function hook_codkephu_init()
         "You don't have the necessary permission to view this vote." => 'Nincs elegendő jogosultságod a szavazás megtekintéséhez.',
         'Login to the site' => 'Bejelentkezés a weboldalra',
         'Logout from the site' => 'Kijelentkezés a webhelyről',
+        'Unauthenticated user' => 'Nem hitelesített felhasználó',
     ]);
 
     add_t_array('hu',[
