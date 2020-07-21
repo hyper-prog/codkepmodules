@@ -1000,7 +1000,7 @@ function aj_rawqueriesmodule_ajaxqueryeditordoit()
     }
 
     $r = rawqueries_dm_getquery_by_num($num);
-    if(!isset($r['targetstr']) || !isset($r['num']) || $r['num'] == '')
+    if(!isset($r['num']) || $r['num'] == '')
     {
         ajax_add_alert(t('Could not retrieve query!'));
         return;
