@@ -5,6 +5,10 @@ There is a C++ json builder in gSAFE package which works together this module.
 
 On C++ side you can do similar queries than CodKep:
 
+    #include <builder.h> //From gSAFE
+
+    ...
+
     HSqlBuilder b =  db_query("usertable")
                        .get("name")
                        .get("birthdate")
@@ -15,4 +19,4 @@ On C++ side you can do similar queries than CodKep:
 
     sendAsHttpPost("http://server/resourcename/fastid",b.json_string());
 
-The HttpSqlConn module can process the query above check the permissions (set by hooks) and send back the required ansver in Json
+The HttpSqlConn module can process the query above check the permissions (set by hooks) and send back the required answer in Json
