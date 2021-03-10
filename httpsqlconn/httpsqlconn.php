@@ -573,9 +573,9 @@ function executorQueryUni_cond_simple($res,$action,$cond,$obj,$objtype)
         $sqlcond = str_replace("__VALUE__", $insv, $sqlcond);
 
         if($objtype == "db")
-            $obj->sql($sqlcond);
-        if($objtype == "cond")
             $obj->cond_sql($sqlcond);
+        if($objtype == "cond")
+            $obj->sql($sqlcond);
     }
 }
 
