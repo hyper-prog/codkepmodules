@@ -288,7 +288,7 @@ function dc_executor__query_uni($res,$jsonarray)
         if($returnType == 'table')
         {
             $r_single = 'array';
-            $r_table = $q->execute_to_arrays(["noredirect" => true]);
+            $r_table = $q->execute_to_arrays(["noredirect" => true,"fetch_names_only" => true]);
         }
         if($returnType == 'single')
         {
@@ -553,6 +553,9 @@ function executorQueryUni_cond_simple($res,$action,$cond,$obj,$objtype)
     {
         global $httpsqlconn;
         $templ_name = $cond['template'];
+
+        if(!check_str($ev, 'text3'))
+            throw new Exception("Invalid condition field content. (ICSV1)");
 
         if(!isset($httpsqlconn->condition_templates[$templ_name]))
             throw new Exception("Unsupported condition template name.");
