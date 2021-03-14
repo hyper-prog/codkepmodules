@@ -3,6 +3,7 @@
 This module gives you the possibility to receive and handle json encapsulated sql commands through HTTP/POST requests.
 There is a C++ json builder in gSAFE package which works together this module.
 
+
 On C++ side you can do similar queries than CodKep:
 
     #include <builder.h> //From gSAFE
@@ -19,9 +20,9 @@ On C++ side you can do similar queries than CodKep:
 
     sendAsHttpPost("http://server/httpsqlconn/mysampleresource/secretreshash",b.json_string());
 
-The HttpSqlConn module can process the query above check the permissions (set by hooks) and send back the required answer in Json
+The HttpSqlConn module can process the query above, check the permissions (set by hooks) and send back the required answer in Json
 
-You can do the followig changes in _settings.php to enable the feature above:
+You have to do the following changes in _settings.php to enable the feature above:
 
     ...
     global $httpsqlconn;
@@ -32,6 +33,5 @@ You can do the followig changes in _settings.php to enable the feature above:
         'sqlreconnect' => false,
         // 'sql_user' => 'myuser',
         // 'sql_password' => 'secretpassword',
-        // 'dataProvider' => 'customDataProvider',
         ],
     ];

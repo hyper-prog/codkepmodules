@@ -613,3 +613,37 @@ function executorQueryUni_sort($res,$action,$sorts,$q)
     }
 }
 
+
+function hook_httpsqlconn_introducer()
+{
+    $html = '';
+    global $httpsqlconn;
+
+    if($httpsqlconn->define_routes)
+        $html .= 'HttpSqlConn url: <code>'.$_SERVER['REQUEST_SCHEME'].'://httpsqlconn/{resourcename}/{fastid}</code><br/>';
+    $html .= 'Available resources: ';
+    $n = 0;
+    foreach($httpsqlconn->resources as $rname => $rdata)
+    {
+        $html .= ($n > 0 ? ', ': '') . '<code>'.$rname.'</code>';
+        ++$n;
+    }
+    $html .= '<br/>';
+    return ['HttpSqlConn' => $html];
+}
+
+function hook_httpsqlconn_documentation($section)
+{
+    $docs = [];
+    if($section == "codkep")
+    {
+        $docs[] = [
+            'httpsqlconn' => [
+                'path' => codkep_get_path('httpsqlconn','server') . '/httpsqlconn.mdoc',
+                'index' => false ,
+                'imagepath' => codkep_get_path('httpsqlconn','web') .'/docimages'
+            ]
+        ];
+    }
+    return $docs;
+}

@@ -1,0 +1,147 @@
+= HttpSqlConn module =
+
+Module name: **httpsqlconn**
+<br/>
+You have to enable this module in ***site/_modules.php*** file to use it.
+.
+This module gives you the possibility to receive and handle json encapsulated sql commands through HTTP/POST requests.
+There is a C++ json builder in [url:https://github.com/hyper-prog/gsafe|gSAFE] package which works together this module.
+.
+The C++ query builder works similar to [url:doc/codkep/sql#database_query_interface|CodKep sql query interface], so you
+can use same methods and options to build queries in C++ as CodKep in php.
+By configuring this module you can "execute" the built queries in server side safe way.
+.
+C++ sample code (in client program)
+~~~code
+#include <builder.h> //From gSAFE
+.
+...
+.
+HttpSqlConnection::configure("http://myserver.local","mysampleresource","secretreshash");
+.
+HttpSqlConnection conn;
+conn.sendReqAll(db_query("usertable")
+                   .get("name")
+                   .get("birthdate")
+                   .get("comm")
+                   .join_ffe("account","","usertable","uid","account","connuid")
+                   .get("account","balance")
+                   .cond_fv("age",Unquoted,"30",">")
+                );
+.
+~~~
+
+=== Steps of remote sql processing ===
+
+- Build the Sql query with the ***HSqlBuilder*** class (C++ / gSAFE)
+ - (You can generate the resulting sql command with ***local_cmd*** and execute locally if necessary.)
+- Generate the JSON version of the query by ***json_string()*** and post to the HttpSqlConn-s url as HTTP/POST
+\ to a resource name. (Sample code in gSAFE's sample folder can do this)
+- The HttpSqlConn checks the availability of the requested command within the requested resource
+\ name and check the SQL table permissions.
+ - Command availability is specified by ***HOOK_httpsqlconn_command_enabled*** [hook|url:doc/codkep/hooks].
+ - The SQL table permission is specified by ***HOOK_httpsqlconn_operation_enabled*** [hook|url:doc/codkep/hooks].
+- The HttpSqlConn builds the local sql query by CodKep database query interface and execute it.
+- The result is sent back as a json array to the client.
+- Optionally the gSAFE sample code can built a HPlainDataMatrix object which contains the result data.
+
+=== Resource names ===
+
+The HttpSqlConn receive the requests within resource names.
+You can associate the command executing permissions and the availability of the sql tables to this resource names.
+.
+The HttpSqlConn module has a global ***$httpsqlconn*** object which configurable
+in [in site settings|url:doc/codkep/modules#site_settings] and describe the resource names and the options/working
+modes of this resources.
+.
+Section if ***_settings.php*** which enable the ***"mysampleresource"*** resource name.
+~~~php
+global $httpsqlconn;
+
+$httpsqlconn->define_routes = true;
+$httpsqlconn->resources = [
+    'mysampleresource' => [
+        'fastid' => 'secretreshash',
+        'sqlreconnect' => false,
+       // 'sql_user' => 'myuser',
+       // 'sql_password' => 'secretpassword',
+    ],
+];
+~~~
+
+In the default handling url (When ***$httpsqlconn->define_routes*** is ***true***) the client connect to an url which
+contains the resource name and a fast-id which does a first line authentication and check of the client.
+.
+By set of ***$httpsqlconn->input_encoder = CALLBACKNAME*** and ***$httpsqlconn->output_encoder = CALLBACKNAME***
+you can set functions which can achieve additional encoding/encryption/authentication. In default settings this values
+contains NULL which means that no further encoding used to receive and send data. The gSAFE sample HttpSqlConnection
+class works this way. If you will set some encoder functions in settings above, you will have to modify the HttpSqlConnection
+class to use same encoding methods.
+
+== Access control ==
+
+
+==== Set the available commands in resources ====
+
+You can control the availability of the commands within a resource name by implementing
+***HOOK_httpsqlconn_command_enabled*** hook.
+.
+The hook receives two parameters:
+ # ***$resource*** The resource name within the request is received.
+ # ***$command*** The requested command name.
+
+*Note: You can also reach te remote address of the client by ***get_remote_address()*** within this hook*
+.
+The hook have to return one of the following values:
+  - ***NODE_ACCESS_IGNORE*** - Ignore the answer
+  - ***NODE_ACCESS_ALLOW*** - Allow the specified command
+  - ***NODE_ACCESS_DENY*** - Deny the command execution
+
+*Note1: The NODE_ACCESS_DENY is always stronger than NODE_ACCESS_ALLOW,*
+*if both received the result will NODE_ACCESS_DENY*
+.
+Sample hook which enables all commands for the "mysampleresource" resource:
+~~~php
+function hook_mymodule_httpsqlconn_command_enabled($resource,$command)
+{
+    if($resource == "mysampleresource")
+        return NODE_ACCESS_ALLOW;
+.
+    return NODE_ACCESS_IGNORE;
+}
+~~~
+
+==== Set the SQL table permissions in resources ====
+
+You can control the SQL table availability within a resource name by implementing
+***HOOK_httpsqlconn_operation_enabled*** hook.
+.
+The hook receives three parameters:
+ # ***$resource*** The resource name within the request is received.
+ # ***$operation*** can be one of the following
+  - ***"select"*** - Select/Query data from the table
+  - ***"update"*** - Update the data in the table
+  - ***"insert"*** - Insert data to the table
+  - ***"delete"*** - Delete data from the table
+ # ***$tablename*** The related sql table name.
+
+*Note: You can also reach te remote address of the client by ***get_remote_address()*** within this hook*
+.
+The hook have to return one of the following values:
+  - ***NODE_ACCESS_IGNORE*** - Ignore the answer
+  - ***NODE_ACCESS_ALLOW*** - Allow the specified operation
+  - ***NODE_ACCESS_DENY*** - Deny the operation
+
+*Note1: The NODE_ACCESS_DENY is always stronger than NODE_ACCESS_ALLOW,*
+*if both received the result will NODE_ACCESS_DENY*
+.
+Sample hook which enables all operation on the "sampletable" in "mysampleresource" resource:
+~~~php
+function hook_mymodule_httpsqlconn_operation_enabled($resource,$operation,$tablename)
+{
+    if($resource == "mysampleresource" && $tablename = "sampletable")
+        return NODE_ACCESS_ALLOW;
+.
+    return NODE_ACCESS_IGNORE;
+}
+~~~
