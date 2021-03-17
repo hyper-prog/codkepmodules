@@ -60,6 +60,13 @@ function httpsqlconn_connection_callback()
 
     $data = file_get_contents('php://input');
 
+    $encdata = $data;
+    if($httpsqlconn->input_encoder != NULL && is_callable($httpsqlconn->input_encoder))
+        $encdata = call_user_func($httpsqlconn->input_encoder,$data,$resource);
+
+    if($encdata == "")
+        return NULL;
+
     userblocking_clear();
 
     if(isset($httpsqlconn->resources[$resource]['sqlreconnect']) &&
@@ -83,10 +90,6 @@ function httpsqlconn_connection_callback()
     $resCallback = 'httpsqlconnProvider';
     if(isset($httpsqlconn->resources[$resource]['dataProvider']))
         $resCallback = $httpsqlconn->resources[$resource]['dataProvider'];
-
-    $encdata = $data;
-    if($httpsqlconn->input_encoder != NULL && is_callable($httpsqlconn->input_encoder))
-        $encdata = call_user_func($httpsqlconn->input_encoder,$data,$resource);
 
     $r = call_user_func($resCallback,$resource,$encdata);
 
