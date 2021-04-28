@@ -97,6 +97,8 @@ function hook_codkephu_init()
         'Login to the site' => 'Bejelentkezés a weboldalra',
         'Logout from the site' => 'Kijelentkezés a webhelyről',
         'Unauthenticated user' => 'Nem hitelesített felhasználó',
+        'Delete this page' => 'Ennek a lapnak a törlése',
+        'Edit this page' => 'Ennek a lapnak a szerkesztése',
     ]);
 
     add_t_array('hu',[
