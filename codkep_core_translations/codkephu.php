@@ -8,7 +8,7 @@
  *  Written by Peter Deak (C) hyper80@gmail.com , License GPLv2
  */
 
-function hook_codkephu_init()
+function hook_codkephu_preinit()
 {
     add_t_array('hu',[
         'Yes' => 'Igen',
@@ -16,12 +16,21 @@ function hook_codkephu_init()
         'Save' => 'Ment',
         'Delete' => 'Töröl',
         'Add' => 'Hozzáad',
+        'Create' => 'Létrehoz',
         'Error' => 'Hiba',
         'Permission denied' => 'Hozzáférés megtagadva',
         'Login' => 'Bejelentkezés',
+        'User login name' => 'Felhasználó bejelentkezési neve',
         'Logout' => 'Kijelentkezés',
+        'User' => 'Felhasználó',
+        'Administrator' => 'Adminisztrátor',
+        'Editor' => 'Szerkesztő',
         'Username' => 'Felhasználói név',
+        'Full name' => 'Teljes név',
         'Password' => 'Jelszó',
+        'User identifier' => 'Felhasználó azonosítója',
+        'Role' => 'Szerepkör',
+        'Last login' => 'Utoljára bejelentkezve',
         'Not found' => 'Nem található',
         'Enabled' => 'Engedélyezve',
         'Disabled' => 'Tíltva',
@@ -68,6 +77,11 @@ function hook_codkephu_init()
         'You don\'t have the required permission to remove this file' => 'Nincs meg a megfelelő jogosultságod, hogy a kért fájlt törölhesd',
         'You don\'t have the required permission to create the file' => 'Nincs meg a megfelelő jogosultságod, hogy a létrehozd a fájlt',
         'Login disabled' => 'Bejelentkezés letíltva',
+        'You have to fill the login name' => 'A bejelentkezési nevet kötelező megadmin',
+        'You have to fill the full name field' => 'A teljes név mezőt kötelező megadmin',
+        'You have to fill the password field' => 'A jelszó mezőt kötelező megadmin',
+        'Old password' => 'Régi jelszó',
+        'New password' => 'Új jelszó',
         'Failed to log in! Wrong user name or password.' => 'Bejelentkezés nem sikerült! Rossz a felhasználó név vagy a jelszó.',
         'Password security warning' => 'Jelszó biztonsági figyelmeztetés',
         'The password has to be at least _len_ character long!' => 'A megadott jelszó hossza minimum _len_ karakter kell legyen!',
@@ -97,8 +111,21 @@ function hook_codkephu_init()
         'Login to the site' => 'Bejelentkezés a weboldalra',
         'Logout from the site' => 'Kijelentkezés a webhelyről',
         'Unauthenticated user' => 'Nem hitelesített felhasználó',
+        'Reset user password' => 'Felhasználó jelszavának a beállítása',
+        'Change my password' => 'Saját jelszó megváltoztatása',
         'Delete this page' => 'Ennek a lapnak a törlése',
         'Edit this page' => 'Ennek a lapnak a szerkesztése',
+        'Page identifier' => 'Lap azonosítója',
+        'Page title' => 'Lap címe',
+        'Page path (location)' => 'Lap elérési útvonala (webhely)',
+        'Published' => 'Közzétéve',
+        'Page body html' => 'Lap html törzse',
+        'Tag 1' => 'Címke 1',
+        'Tag 2' => 'Címke 2',
+        'Creating user' => 'Létrehozta',
+        'Create time' => 'Létrehozás ideje',
+        'Modifier user' => 'Utoljára szerkesztette',
+        'Modification time' => 'Módosítás ideje',
     ]);
 
     add_t_array('hu',[
