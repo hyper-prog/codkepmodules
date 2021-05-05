@@ -1,5 +1,4 @@
 <?php
-
 /*  CodKep core translation - Hungarian
  *
  *  Module name: codkephu
@@ -122,6 +121,7 @@ function hook_codkephu_preinit()
         'Page body html' => 'Lap html törzse',
         'Tag 1' => 'Címke 1',
         'Tag 2' => 'Címke 2',
+        'Created' => 'Létrehozva',
         'Creating user' => 'Létrehozta',
         'Create time' => 'Létrehozás ideje',
         'Modifier user' => 'Utoljára szerkesztette',
