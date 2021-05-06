@@ -10,6 +10,40 @@ function hook_news_boot()
     global $site_config;
     $site_config->news_show_control_on_top = true;
     $site_config->news_show_internal_full_topcss = 'news-internal-view-full';
+
+    $site_config->news_define_newspath = true;
+    $site_config->news_newspath_base = 'news';
+}
+
+function hook_news_defineroute()
+{
+    global $site_config;
+    if(!$site_config->news_define_newspath)
+        return [];
+    return [
+        ['path' => $site_config->news_newspath_base . '/{newspath}','callback' => 'pc_newsbypath']
+    ];
+}
+
+function pc_newsbypath()
+{
+    global $user;
+
+    par_def('newspath','text0sudne');
+    $newspath = par('newspath');
+    $r = db_query('news')
+        ->get('newsid')
+        ->cond_fb('published')
+        ->cond_fv('path',$newspath,'=')
+        ->length(1)
+        ->execute_to_arrays(["noredirect" => true]);
+    if(!isset($r[0]['newsid']) || $r[0]['newsid'] == '')
+        load_loc('notfound');
+
+    $node = node_load_intype($r[0]['newsid'],'news');
+    if(node_access($node,'view',$user) == NODE_ACCESS_ALLOW)
+        return $node->view();
+    return '';
 }
 
 function news_news_view(Node $node)
@@ -132,7 +166,10 @@ function news_list_block($overrides = [])
         print $opts['newsbefore'];
         print '<div class="news-list-block-titleline">';
             print '<div class="newslb-title-str">';
-            print $opts['titlebefore'] . l($nw['title'],'node/'.$nw['node_nid']).$opts['titleafter'];
+            $full_news_path = 'node/'.$nw['node_nid'];
+            if($site_config->news_define_newspath && $nw['path'] != '')
+                $full_news_path = $site_config->news_newspath_base . '/' . $nw['path'];
+            print $opts['titlebefore'] . l($nw['title'],$full_news_path).$opts['titleafter'];
             print '</div>';
             print '<div class="newslb-control-btns">';
             if($opts['adminlnks'])
@@ -267,13 +304,13 @@ function news_manage_news($overrides = [])
     ];
 
     ob_start();
-    print l('<img src="'.codkep_get_path('news','web').'/images/greenplus25.png"/>',
+    print l('<img src="'.codkep_get_path('core','web').'/images/small_green_plus.png"/>',
             "node/news/add",
             ['title' => t('Upload a news')]);
     $data = [];
     print to_table($nws,$c,$data);
     if($data['rowcount'] > 5)
-        print l('<img src="'.codkep_get_path('news','web').'/images/greenplus25.png"/>',
+        print l('<img src="'.codkep_get_path('core','web').'/images/small_green_plus.png"/>',
                 "node/news/add",
                 ['title' => t('Upload a news')]);
     return ob_get_clean();
@@ -294,20 +331,6 @@ function hook_news_node_access(Node $node,$op,$acc)
     return NODE_ACCESS_IGNORE;
 }
 
-
-function hook_news_node_form_before(Node $node,$op)
-{
-    if($node->node_type == 'news' && ($op == 'add' || $op == 'edit'))
-    {
-        add_js_file('/sys/ckeditor/ckeditor.js');
-        add_header("<script>
-                    window.onload = function() {
-                        CKEDITOR.replace('news_sumbody_ckedit');
-                        CKEDITOR.replace('news_body_ckedit');
-                    }; </script>");
-    }
-}
-
 function hook_news_node_saved($obj)
 {
     if($obj->node_ref->node_type == 'news')
@@ -326,6 +349,29 @@ function hook_news_node_inserted($obj)
         ccache_delete('routecache');
 }
 
+function validator_news_path(&$path,$def,$values)
+{
+    $origpath  = $path;
+    $checkpath = $origpath;
+    $rup = 0;
+    do
+    {
+        if($rup > 0)
+            $checkpath = $origpath . "-" . sprintf("%03d",$rup);
+
+        $q = db_query('news')
+            ->counting('newsid','count')
+            ->cond_fv('path',$checkpath,'=');
+        if(isset($values['newsid']) && $values['newsid'] != null && $values['newsid'] != '')
+            $q->cond_fv('newsid',$values['newsid'],'!=');
+        $c = $q->execute_to_single();
+        $rup++;
+    }
+    while($c > 0);
+    $path = $checkpath;
+}
+
+
 function hook_news_nodetype()
 {
     $n = [];
@@ -335,6 +381,16 @@ function hook_news_nodetype()
         "show" => "div",
         "div_class" => "news_edit_area",
         "view_callback" => "news_news_view",
+        "javascript_files" => [codkep_get_path('core','web') . '/ckeditor/ckeditor.js'],
+        "form_script" => "window.onload = function() {
+                              CKEDITOR.replace('news_sumbody_ckedit');
+                              CKEDITOR.replace('news_body_ckedit');
+                          };
+                          jQuery(document).ready(function() {
+                              jQuery('.autopath').each(function() {
+                                  codkep_set_autofill(this);
+                              });
+                          });",
         "fields" => [
             10 => [
                 "sql" => "newsid",
@@ -348,6 +404,7 @@ function hook_news_nodetype()
                 "type" => "smalltext",
                 "form_options" => [
                     "size" => 60,
+                    "id" => "news-title-edit",
                 ],
                 "par_sec" => "text4",
             ],
@@ -355,9 +412,13 @@ function hook_news_nodetype()
                 "sql" => "path",
                 "text" => t('News path (location)'),
                 "type" => "smalltext",
+                "par_sec" => "text0sudne",
                 "form_options" => [
-                    "size" => 30,
+                    "size" => 60,
+                    "class" => "autopath",
+                    "rawattributes" => "data-autopath-from=\"news-title-edit\" data-autopath-type=\"alsd\"",
                 ],
+                'check_callback' => 'validator_news_path',
             ],
             40 => [
                 "sql" => "published",

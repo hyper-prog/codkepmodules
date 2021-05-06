@@ -79,6 +79,7 @@ function hook_codkephu_preinit()
         'You have to fill the login name' => 'A bejelentkezési nevet kötelező megadmin',
         'You have to fill the full name field' => 'A teljes név mezőt kötelező megadmin',
         'You have to fill the password field' => 'A jelszó mezőt kötelező megadmin',
+        'You have to fill the path field' => 'Az elérési út mezőt kötelező megadni',
         'Old password' => 'Régi jelszó',
         'New password' => 'Új jelszó',
         'Failed to log in! Wrong user name or password.' => 'Bejelentkezés nem sikerült! Rossz a felhasználó név vagy a jelszó.',
@@ -117,6 +118,9 @@ function hook_codkephu_preinit()
         'Page identifier' => 'Lap azonosítója',
         'Page title' => 'Lap címe',
         'Page path (location)' => 'Lap elérési útvonala (webhely)',
+        'The path of the page must be unique! There is an existing page in the database which already have a path you set.' =>
+          'A lap útvonalának egyedinek kell lennie. Már létezik az adatbázisban egy lap aminek az útvonala egyezik azzal ami most megadásra került.',
+        'The path of the page used by the system! Please choose a different path!' => 'A laphoz beállított útvonalnevet a rendszer használja. Kérem válasszon másik útvonalat!',
         'Published' => 'Közzétéve',
         'Page body html' => 'Lap html törzse',
         'Tag 1' => 'Címke 1',
