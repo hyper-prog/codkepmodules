@@ -14,3 +14,17 @@ Sample to define tags in _settings.php
 	    'perm_editother'   => 'Permission to edit other things',
 	];
 	...
+
+Use the flag in php codes
+
+	print "Hello ";
+	if(permission_hasflag('perm_editsome'))
+	{
+	    print "you can ";
+	}
+	else
+	{
+	    print "you cannot ";
+	}
+	print "edit something";
+
