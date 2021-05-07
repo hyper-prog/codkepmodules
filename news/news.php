@@ -1,5 +1,5 @@
 <?php
-/*  CodKep news modules
+/*  CodKep news module
  *
  *  Module name: news
  *  Written by Peter Deak (C) hyper80@gmail.com , License GPLv2
@@ -113,11 +113,15 @@ function news_list_block($overrides = [])
         'back-on-bottom'  => true,
         'whole-top-css'   => 'news-sum-list',
         'next-back-url'   => current_loc(),
+        'next-back-url-class' => 'news-n-b-link',
     ];
 
     foreach($opts as $optname => $optval)
         if(isset($overrides[$optname]))
             $opts[$optname] = $overrides[$optname];
+
+    if($opts['start'] < 0)
+        $opts['start'] = 0;
 
     $q = node_query('news')
         ->get_a(['newsid','title','path','sumbody','fullbody'])
@@ -125,10 +129,8 @@ function news_list_block($overrides = [])
     if(!$opts['show-notpubished'])
         $q->cond_fb('published');
     $cntr = $q->execute_to_arrays();
-    if(!isset($cntr[0]['cnt']) || intval($cntr[0]['cnt']) == 0)
-    {
+    if(!isset($cntr[0]['cnt']) || intval($cntr[0]['cnt']) == 0 || $opts['start'] > intval($cntr[0]['cnt']))
         return '<div class="no-news-class">'.t('No news').'</div>';
-    }
 
     $allcnt = intval($cntr[0]['cnt']);
 
@@ -152,9 +154,11 @@ function news_list_block($overrides = [])
         print '<div style="display: flex; align-items: center; justify-content: center;">';
         print '<div style="display: inline-flex; margin-left: auto; margin-right:auto;">';
         if($opts['start'] > 0 && $opts['next-on-top'])
-            print news_list_block_nextback_link($opts['next-back-url'],'newer',$opts['start'],$opts['length'],$allcnt);
+            print news_list_block_nextback_link($opts['next-back-url'],'newer',
+                                                $opts['start'],$opts['length'],$allcnt,$opts['next-back-url-class']);
         if($opts['start'] + $opts['length'] < $allcnt && $opts['back-on-top'])
-            print news_list_block_nextback_link($opts['next-back-url'],'older',$opts['start'],$opts['length'],$allcnt);
+            print news_list_block_nextback_link($opts['next-back-url'],'older',
+                                                $opts['start'],$opts['length'],$allcnt,$opts['next-back-url-class']);
         print '</div>';
         print '</div>';
     }
@@ -199,9 +203,11 @@ function news_list_block($overrides = [])
         print '<div style="display: flex; align-items: center; justify-content: center;">';
         print '<div style="display: inline-flex; margin-left: auto; margin-right:auto;">';
         if($opts['start'] > 0 && $opts['next-on-bottom'])
-            print news_list_block_nextback_link($opts['next-back-url'],'newer',$opts['start'],$opts['length'],$allcnt);
+            print news_list_block_nextback_link($opts['next-back-url'],'newer',
+                                                $opts['start'],$opts['length'],$allcnt,$opts['next-back-url-class']);
         if($opts['start'] + $opts['length'] < $allcnt && $opts['back-on-bottom'])
-            print news_list_block_nextback_link($opts['next-back-url'],'older',$opts['start'],$opts['length'],$allcnt);
+            print news_list_block_nextback_link($opts['next-back-url'],'older',
+                                                $opts['start'],$opts['length'],$allcnt,$opts['next-back-url-class']);
         print '</div>';
         print '</div>';
     }
@@ -209,21 +215,21 @@ function news_list_block($overrides = [])
     return ob_get_clean();
 }
 
-function news_list_block_nextback_link($url,$what,$start,$length,$allcnt)
+function news_list_block_nextback_link($url,$what,$start,$length,$allcnt,$classes)
 {
     if($what == 'newer')
     {
         $newoffset = $start - $length;
         if($newoffset < 0)
             $newoffset = 0;
-        return l(t('View newer news'),$url, ['class' => 'nsl-nb-lnk'],['newsoffset' => $newoffset]);
+        return l(t('View newer news'),$url, ['class' => $classes],['newsoffset' => $newoffset]);
     }
     if($what == 'older')
     {
         $newoffset = $start + $length;
         if($newoffset > $allcnt)
             $newoffset = $allcnt - 1;
-        return l(t('View older news'),$url, ['class' => 'nsl-nb-lnk'], ['newsoffset' => $newoffset]);
+        return l(t('View older news'),$url, ['class' => $classes], ['newsoffset' => $newoffset]);
     }
     return '';
 }
@@ -379,6 +385,7 @@ function hook_news_nodetype()
         "name" => "news",
         "table" => "news",
         "show" => "div",
+        "access_earlyblock" => true,
         "div_class" => "news_edit_area",
         "view_callback" => "news_news_view",
         "javascript_files" => [codkep_get_path('core','web') . '/ckeditor/ckeditor.js'],
