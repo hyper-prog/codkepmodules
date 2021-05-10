@@ -51,11 +51,12 @@ function hook_permissionflags_user_identified()
     $pfs = db_query($user_module_settings->sql_tablename)
                 ->get_a($perm_flag_names)
                 ->cond_fv('uid',$user->uid,'=')
-                ->execute_and_fetch();
+                ->execute_to_arrays(["noredirect" => true]);
 
     $user->permflags = [];
-    foreach($perm_flag_names as $pfn)
-        $user->permflags[$pfn] = ($pfs[$pfn] ? true : false);
+    if(isset($pfs[0]))
+        foreach($perm_flag_names as $pfn)
+            $user->permflags[$pfn] = ($pfs[0][$pfn] ? true : false);
 }
 
 function permission_hasflag($flag,$u = null)
