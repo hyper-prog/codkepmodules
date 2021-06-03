@@ -10,6 +10,7 @@ function hook_news_boot()
     global $site_config;
     $site_config->news_show_control_on_top = true;
     $site_config->news_show_internal_full_topcss = 'news-internal-view-full';
+    $site_config->news_publishdate_callback = 'news_publishdate_passthru';
 
     $site_config->news_define_newspath = true;
     $site_config->news_newspath_base = 'news';
@@ -23,6 +24,11 @@ function hook_news_defineroute()
     return [
         ['path' => $site_config->news_newspath_base . '/{newspath}','callback' => 'pc_newsbypath']
     ];
+}
+
+function news_publishdate_passthru($t)
+{
+    return $t;
 }
 
 function pc_newsbypath()
@@ -84,7 +90,11 @@ function news_news_view(Node $node)
         print '</div>';
     }
     print '</div>';
-    print '<small>'.t('Published on _publishdatetime_',['_publishdatetime_' => $node->node_created]).'</small>';
+    print '<small>'
+        .t('Published on _publishdatetime_',
+            ['_publishdatetime_' =>
+                call_user_func($site_config->news_publishdate_callback,$node->node_created)]).
+        '</small>';
     print implode('',run_hook('newsview_aftertitle',$node));
     print $node->fullbody;
     print implode('',run_hook('newsview_after',$node));
@@ -191,7 +201,11 @@ function news_list_block($overrides = [])
             }
             print '</div>';
         print '</div>';
-        print '<small>'.t('Published on _publishdatetime_',['_publishdatetime_' => $nw['ncreated']]).'</small>';
+        print '<small>'
+                .t('Published on _publishdatetime_',
+                    ['_publishdatetime_' =>
+                        call_user_func($site_config->news_publishdate_callback,$nw['ncreated'])]).
+              '</small>';
         print $nw[$opts['show']];
         print $opts['newsafter'];
         print '<div class="c"></div>';
