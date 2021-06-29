@@ -73,3 +73,21 @@ function permission_hasflag($flag,$u = null)
     return false;
 }
 
+
+function hook_permissionflags_documentation($section)
+{
+    $docs = [];
+    if($section == "codkep")
+    {
+        $docs[] = [
+            'permissionflags' => [
+                'path' => codkep_get_path('permissionflags','server') . '/permissionflags.mdoc',
+                'index' => false ,
+                'imagepath' => codkep_get_path('permissionflags','web') .'/docimages'
+            ]
+        ];
+    }
+    return $docs;
+}
+
+
