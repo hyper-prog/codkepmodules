@@ -44,6 +44,7 @@ function hook_codkephu_preinit()
         'Last SQL command' => 'Utolsó SQL parancs',
         'Backtrace' => 'Hívási lánc',
         'Unknown' => 'Ismeretlen',
+        'Preview' => 'Előnézet',
         'Expired form error' => 'Lejárt űrlap hiba',
         'The form is expired. Please refresh the page!' => 'Az űrlap érvénytelen lett. Kérlek frissítsd a lapot!',
         '(The form is loaded _msv_ but modified _csv_)' => '(Az űrlap _msv_ kor töltődött be, de _csv_ kor módosítva lett)',

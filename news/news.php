@@ -22,8 +22,16 @@ function hook_news_defineroute()
     if(!$site_config->news_define_newspath)
         return [];
     return [
-        ['path' => $site_config->news_newspath_base . '/{newspath}','callback' => 'pc_newsbypath']
+        ['path' => $site_config->news_newspath_base . '/{newspath}','callback' => 'pc_newsbypath'],
     ];
+}
+
+function hook_news_init()
+{
+    global $glb_templatecallbacks;
+    global $glb_templatenames;
+    $glb_templatecallbacks = run_hook('news_template_callbacks');
+    $glb_templatenames     = run_hook('news_template_names');
 }
 
 function news_publishdate_passthru($t)
@@ -50,6 +58,18 @@ function pc_newsbypath()
     if(node_access($node,'view',$user) == NODE_ACCESS_ALLOW)
         return $node->view();
     return '';
+}
+
+function news_template_extract($templatekey,$source,$par)
+{
+    global $glb_templatecallbacks;
+    if(array_key_exists($templatekey,$glb_templatecallbacks) &&
+       is_callable($glb_templatecallbacks[$templatekey]))
+    {
+        $pars = explode(';',str_replace("\n",";",$par));
+        return call_user_func($glb_templatecallbacks[$templatekey],$source,$pars);
+    }
+    return $source;
 }
 
 function news_news_view(Node $node)
@@ -96,16 +116,15 @@ function news_news_view(Node $node)
                 call_user_func($site_config->news_publishdate_callback,$node->node_created)]).
         '</small>';
     print implode('',run_hook('newsview_aftertitle',$node));
-    print $node->fullbody;
+    print news_template_extract($node->fulltemplate,$node->fullbody,$node->fullp);
     print implode('',run_hook('newsview_after',$node));
     print '</section>';
     return ob_get_clean();
 }
 
-function news_list_block($overrides = [])
+function news_list_block_default_options()
 {
-    global $site_config;
-    $opts = [
+    return  [
         'adminlnks'       => true,
         'show-notpubished'=> false,
         'sort'            => ['node','created'],
@@ -125,6 +144,11 @@ function news_list_block($overrides = [])
         'next-back-url'   => current_loc(),
         'next-back-url-class' => 'news-n-b-link',
     ];
+}
+
+function news_list_block($overrides = [])
+{
+    $opts = news_list_block_default_options();
 
     foreach($opts as $optname => $optval)
         if(isset($overrides[$optname]))
@@ -145,7 +169,7 @@ function news_list_block($overrides = [])
     $allcnt = intval($cntr[0]['cnt']);
 
     $q = node_query('news')
-          ->get_a(['newsid','title','path','sumbody','fullbody'])
+          ->get_a(['newsid','title','path','sumtemplate','sumbody','sump','fulltemplate','fullbody','fullp'])
           ->get(['node','created'],'ncreated')
           ->sort($opts['sort'],['direction' => 'REVERSE'])
           ->start($opts['start'])
@@ -177,37 +201,7 @@ function news_list_block($overrides = [])
     {
         if($cnt > 0)
             print $opts['separator'];
-        print $opts['newsbefore'];
-        print '<div class="news-list-block-titleline">';
-            print '<div class="newslb-title-str">';
-            $full_news_path = 'node/'.$nw['node_nid'];
-            if($site_config->news_define_newspath && $nw['path'] != '')
-                $full_news_path = $site_config->news_newspath_base . '/' . $nw['path'];
-            print $opts['titlebefore'] . l($nw['title'],$full_news_path).$opts['titleafter'];
-            print '</div>';
-            print '<div class="newslb-control-btns">';
-            if($opts['adminlnks'])
-            {
-                print '<div class="newslb-control-edit">';
-                print l('<img class="nebtn-img" src="'.codkep_get_path('core','web').'/images/edit35.png"/>',
-                        'node/'.$nw['node_nid'].'/edit',
-                        ['title' => t('Edit this news')]);
-                print '</div>';
-                print '<div class="newslb-control-del">';
-                print l('<img class="nebtn-img" src="'.codkep_get_path('core','web').'/images/del35.png"/>',
-                        'node/'.$nw['node_nid'].'/delete',
-                        ['title' => t('Delete this news')]);
-                print '</div>';
-            }
-            print '</div>';
-        print '</div>';
-        print '<small>'
-                .t('Published on _publishdatetime_',
-                    ['_publishdatetime_' =>
-                        call_user_func($site_config->news_publishdate_callback,$nw['ncreated'])]).
-              '</small>';
-        print $nw[$opts['show']];
-        print $opts['newsafter'];
+        print news_summary_section($opts,$nw);
         print '<div class="c"></div>';
         $cnt++;
     }
@@ -226,6 +220,51 @@ function news_list_block($overrides = [])
         print '</div>';
     }
     print '</section>';
+    return ob_get_clean();
+}
+
+function news_summary_section($opts,$nw)
+{
+    global $site_config;
+
+    ob_start();
+    print $opts['newsbefore'];
+    print '<div class="news-list-block-titleline">';
+        print '<div class="newslb-title-str">';
+        $full_news_path = 'node/'.$nw['node_nid'];
+        if($site_config->news_define_newspath && $nw['path'] != '')
+            $full_news_path = $site_config->news_newspath_base . '/' . $nw['path'];
+        print $opts['titlebefore'] . l($nw['title'],$full_news_path).$opts['titleafter'];
+        print '</div>';
+
+        print '<div class="newslb-control-btns">';
+        if($opts['adminlnks'])
+        {
+            print '<div class="newslb-control-edit">';
+            print l('<img class="nebtn-img" src="'.codkep_get_path('core','web').'/images/edit35.png"/>',
+                    'node/'.$nw['node_nid'].'/edit',
+                    ['title' => t('Edit this news')]);
+            print '</div>';
+            print '<div class="newslb-control-del">';
+            print l('<img class="nebtn-img" src="'.codkep_get_path('core','web').'/images/del35.png"/>',
+                    'node/'.$nw['node_nid'].'/delete',
+                    ['title' => t('Delete this news')]);
+            print '</div>';
+        }
+        print '</div>';
+    print '</div>';
+    print '<small>'
+          .t('Published on _publishdatetime_',
+             ['_publishdatetime_' =>
+             call_user_func($site_config->news_publishdate_callback,$nw['ncreated'])]).
+          '</small>';
+
+    if($opts['show'] == "sumbody")
+        print news_template_extract($nw['sumtemplate'],$nw['sumbody'],$nw['sump']);
+    if($opts['show'] == "fullbody")
+        print news_template_extract($nw['fulltemplate'],$nw['fullbody'],$nw['fullp']).
+
+    print $opts['newsafter'];
     return ob_get_clean();
 }
 
@@ -248,6 +287,33 @@ function news_list_block_nextback_link($url,$what,$start,$length,$allcnt,$classe
     return '';
 }
 
+function hook_news_nodetype_alter_news($pass,$reason)
+{
+    global $glb_templatenames;
+
+    if($reason != 'loaded')
+        return;
+
+    $nts = array_merge(['n' => t('No modification template')],$glb_templatenames);
+    $pass->def['fields'][110]['values'] = $nts;
+    $pass->def['fields'][210]['values'] = $nts;
+}
+
+function hook_news_node_before_action($node,$op,$user)
+{
+    $sf = $node->get_speedform_object();
+
+    $stemplate = $node->sumtemplate;
+    $sf->set_value('sumpreview','<div style="background-color: #ffffbb;">'.
+                                news_template_extract($stemplate,$node->sumbody,$node->sump).
+                                '<div class="c"></div></div>');
+
+    $ftemplate = $node->fulltemplate;
+    $sf->set_value('fullpreview','<div style="background-color: #ffffbb;">'.
+                                 news_template_extract($ftemplate,$node->fullbody,$node->fullp).
+                                 '<div class="c"></div></div>');
+}
+
 function news_manage_news($overrides = [])
 {
     $opts = [
@@ -268,6 +334,7 @@ function news_manage_news($overrides = [])
         ->get(['node','created'],'ncreated')
         ->get(['node','creator'] ,'ncreatuser')
         ->get(['news','modified'],'news_modified')
+        ->get(['news','path'],'npath')
         ->get(['news','moduser'],'news_moduser')
         ->sort($opts['query-sort'],['direction' => 'REVERSE'])
         ->start($opts['query-start'])
@@ -282,7 +349,11 @@ function news_manage_news($overrides = [])
         'newsid' => [
             'headertext' => t('NewsId'),
             'valuecallback' => function($r) {
-                return $r['newsid'] . ' (' . l(t('View'),'node/'.$r['node_nid']) . ')';
+                global $site_config;
+                $full_news_path = 'node/'.$r['node_nid'];
+                if($site_config->news_define_newspath && $r['npath'] != '')
+                    $full_news_path = $site_config->news_newspath_base . '/' . $r['npath'];
+                return l($r['newsid'],'node/'.$r['node_nid']) . ' ' . l('🔗',$full_news_path);
             },
         ],
         'title' => [
