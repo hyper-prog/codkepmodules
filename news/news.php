@@ -28,10 +28,8 @@ function hook_news_defineroute()
 
 function hook_news_init()
 {
-    global $glb_templatecallbacks;
-    global $glb_templatenames;
-    $glb_templatecallbacks = run_hook('news_template_callbacks');
-    $glb_templatenames     = run_hook('news_template_names');
+    global $glb_newstemplates;
+    $glb_newstemplates = run_hook('news_templates');
 }
 
 function news_publishdate_passthru($t)
@@ -62,12 +60,12 @@ function pc_newsbypath()
 
 function news_template_extract($templatekey,$source,$par)
 {
-    global $glb_templatecallbacks;
-    if(array_key_exists($templatekey,$glb_templatecallbacks) &&
-       is_callable($glb_templatecallbacks[$templatekey]))
+    global $glb_newstemplates;
+    if(array_key_exists($templatekey,$glb_newstemplates) &&
+       is_callable($glb_newstemplates[$templatekey]['callback']))
     {
         $pars = explode(';',str_replace("\n",";",$par));
-        return call_user_func($glb_templatecallbacks[$templatekey],$source,$pars);
+        return call_user_func($glb_newstemplates[$templatekey]['callback'],$source,$pars);
     }
     return $source;
 }
@@ -289,12 +287,15 @@ function news_list_block_nextback_link($url,$what,$start,$length,$allcnt,$classe
 
 function hook_news_nodetype_alter_news($pass,$reason)
 {
-    global $glb_templatenames;
+    global $glb_newstemplates;
 
     if($reason != 'loaded')
         return;
 
-    $nts = array_merge(['n' => t('No modification template')],$glb_templatenames);
+    $nts = ['n' => t('No modification template')];
+    foreach($glb_newstemplates as $ntk => $ntv)
+        $nts[$ntk] = $ntv['name'];
+
     $pass->def['fields'][110]['values'] = $nts;
     $pass->def['fields'][210]['values'] = $nts;
 }
@@ -483,6 +484,15 @@ function hook_news_introducer()
 function hook_news_documentation($section)
 {
     $docs = [];
+    if($section == "codkep")
+    {
+        $docs[] = [
+            'news' => [
+                'path' => codkep_get_path('news','server') . '/news.mdoc',
+                'index' => false ,
+                'imagepath' => codkep_get_path('news','web') .'/docimages'
+            ]
+        ];
+    }
     return $docs;
 }
-
