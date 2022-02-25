@@ -196,13 +196,13 @@ function httpsqlconnProvider($resource,$parameters)
 
 function dc_executor__req_ping($res,$jsonarray)
 {
-    return ['status' => 'Ok','return' => "Pong",'array' => []];
+    return ['status' => 'Ok','rtype' => 'single','return' => "Pong",'array' => []];
 }
 
 function dc_executor__req_server_time($res,$jsonarray)
 {
     $st = sql_exec_single("SELECT " . sql_t('current_timestamp'));
-    return ['status' => 'Ok','return' => $st,'array' => []];
+    return ['status' => 'Ok','rtype' => 'single','return' => $st,'array' => []];
 }
 
 function dc_executor__check_fields_exists($res,$jsonarray)
@@ -220,7 +220,7 @@ function dc_executor__check_fields_exists($res,$jsonarray)
             return ['status' => 'ERROR', 'return' => '','array' => []];
         }
     }
-    return ['status' => 'Ok','return' => 'all_exists','array' => []];
+    return ['status' => 'Ok','rtype' => 'single','return' => 'all_exists','array' => []];
 }
 
 function dc_executor__query_uni($res,$jsonarray)
@@ -284,17 +284,20 @@ function dc_executor__query_uni($res,$jsonarray)
     $r_single = "";
 
     if($returnType == "dryrun")
-        return ['status' => 'Ok','array' => [],'return' => $q->local_cmd()];
+        return ['status' => 'Ok','rtype' => 'single','array' => [],'return' => $q->local_cmd()];
 
+    $r_rtype = 'unknown';
     if($action == 'select')
     {
         if($returnType == 'table')
         {
             $r_single = 'array';
             $r_table = $q->execute_to_arrays(["noredirect" => true,"fetch_names_only" => true]);
+            $r_rtype = 'array';
         }
         if($returnType == 'single')
         {
+            $r_rtype = 'single';
             $do = $q->execute(["noredirect" => true]);
             if($do != NULL)
             {
@@ -305,18 +308,22 @@ function dc_executor__query_uni($res,$jsonarray)
         }
         if($returnType == 'noreturn')
         {
+            $r_rtype = 'none';
             $q->execute(["noredirect" => true]);
         }
     }
     else
+    {
+        $r_rtype = 'none';
         $q->execute(["noredirect" => true]);
+    }
 
     if($db->error)
     {
         d1('HttpSqlConn sql error(UQ1):'.$db->errormsg);
         return ['status' => 'ERROR', 'return' => '','array' => []];
     }
-    return ['status' => 'Ok','array' => $r_table,'return' => $r_single];
+    return ['status' => 'Ok','rtype' => $r_rtype,'array' => $r_table,'return' => $r_single];
 }
 
 function executorQueryUni_fieldsGet($res,$action,$fields,$q)
@@ -380,7 +387,11 @@ function executorQueryUni_fieldsSet($res,$action,$fields,$q)
         if($type == "set_val")
             $q->set_fv($name,$value,$opt);
         if($type == "set_expr")
+        {
+            if(in_array("dialected_element=yes",$optsa))
+                $value = sql_t(str_replace("<<<","",str_replace(">>>","",$value)));
             $q->set_fe($name,$value,$opt);
+        }
     }
 }
 
