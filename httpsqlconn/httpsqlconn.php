@@ -661,3 +661,106 @@ function hook_httpsqlconn_documentation($section)
     }
     return $docs;
 }
+
+function definition_converter_codkep_to_gsafe2($def)
+{
+    $r = [];
+
+    $r['name'] = $def['table'];
+    $r['title'] = $def['name'];
+
+    $fields = [];
+    foreach($def['fields'] as $idx => $f)
+    {
+        $nf = [];
+        $atts = [];
+
+        $nf['type'] = '';
+
+        if($f['type'] == 'keys')
+            $nf['type'] = 'skey';
+
+        if($f['type'] == 'keyn')
+            $nf['type'] = 'nkey';
+
+        if($f['type'] == 'smalltext')
+            $nf['type'] = 'smalltext';
+
+        if($f['type'] == 'largetext')
+        {
+            $nf['type'] = 'largetext';
+            $nf['char_row'] = $f['row'];
+            $nf['char_col'] = $f['col'];
+        }
+
+        if($f['type'] == 'txtselect')
+            $nf['type'] = 'txtselect';
+
+        if($f['type'] == 'numselect')
+            $nf['type'] = 'numselect';
+
+        if($f['type'] == 'txtradio')
+        {
+            $nf['type'] = 'txtselect';
+            $atts["radiobuttons"] = "yes";
+        }
+
+        if($f['type'] == 'check')
+            $nf['type'] = 'check';
+
+        if($f['type'] == 'number')
+            $nf['type'] = 'number';
+
+        if($f['type'] == 'float')
+            $nf['type'] = 'floating';
+
+        if($f['type'] == 'static')
+            $nf['type'] = 'static';
+
+        if($f['type'] == 'numradio')
+        {
+            $nf['type'] = 'numselect';
+            $atts["radiobuttons"] = "yes";
+        }
+
+        if($f['type'] == 'date')
+            $nf['type'] = 'date';
+
+        if($f['type'] == 'dateu')
+        {
+            $nf['type'] = 'date';
+            $nf['unknownallowed'] = 'yes';
+        }
+
+        if($nf['type'] == '')
+            continue;
+
+        $nf['sqlname'] = $f['sql'];
+        $nf['description'] = $f['text'];
+
+        if(isset($f['default']))
+            $nf['default'] = $f['default'];
+
+        if(isset($f['values']))
+        {
+            $nf['selectables'] = [];
+            foreach($f['values'] as $vi => $vv)
+                $nf['selectables'][] = [$vi => $vv];
+        }
+
+        if(isset($f['color']))
+            $atts['color'] = substr($f['color'],1);
+
+        if(!empty($atts))
+        {
+            $nf['attributes'] = [];
+            foreach($atts as $ai => $av)
+                $nf['attributes'][] = [$ai => $av];
+        }
+
+        $fields[] = $nf;
+
+    }
+    $r['fields'] = $fields;
+    return $r;
+}
