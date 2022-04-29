@@ -689,8 +689,10 @@ function definition_converter_codkep_to_gsafe2($def)
         if($f['type'] == 'largetext')
         {
             $nf['type'] = 'largetext';
-            $nf['char_row'] = $f['row'];
-            $nf['char_col'] = $f['col'];
+            if(isset($f['row']))
+                $nf['char_row'] = $f['row'];
+            if(isset($f['col']))
+                $nf['char_col'] = $f['col'];
         }
 
         if($f['type'] == 'txtselect')
@@ -778,6 +780,12 @@ function definition_converter_codkep_to_gsafe2($def)
 
         if(isset($f['color']))
             $atts['color'] = substr($f['color'],1);
+
+        if(isset($f['gsafe2_attributes']))
+        {
+            foreach($f['gsafe2_attributes'] as $ai => $av)
+                $atts[$ai] = $av;
+        }
 
         if(!empty($atts))
         {
