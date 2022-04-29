@@ -748,6 +748,34 @@ function definition_converter_codkep_to_gsafe2($def)
                 $nf['selectables'][] = [$vi => $vv];
         }
 
+        if(isset($f['check_noempty']))
+        {
+            if(!isset($nf['validators']))
+                $nf['validators'] = [];
+            $nf['validators'][] = ['type' => 'notempty',
+                                   'failmessage' => $f['check_noempty'],
+                                  ];
+        }
+
+        if(isset($f['check_regex']))
+        {
+            if(!isset($nf['validators']))
+                $nf['validators'] = [];
+            foreach($f['check_regex'] as $rk => $rv)
+                if($rk != '' && $rv != '')
+                {
+                    $regex = $rk;
+                    if(substr($rk,0,1) == "/" &&  substr($rk,-1) == "/")
+                        $regex = substr($rk,1,strlen($rk) - 2);
+                    if(substr($rk,0,1) == "/" &&  substr($rk,-2) == "/u")
+                        $regex = substr($rk,1,strlen($rk) - 3);
+                    $nf['validators'][] = ['type' => 'regex',
+                                           'failmessage' => $rv,
+                                           'attributes' => [['valid_regex' => $regex]],
+                                          ];
+                }
+        }
+
         if(isset($f['color']))
             $atts['color'] = substr($f['color'],1);
 
