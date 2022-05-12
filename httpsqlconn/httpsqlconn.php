@@ -701,6 +701,20 @@ function definition_converter_codkep_to_gsafe2($def)
         if($f['type'] == 'numselect')
             $nf['type'] = 'numselect';
 
+        if($f['type'] == 'txtselect_intrange')
+        {
+            $nf['type'] = 'txtselect';
+            $atts["autofill_selectables_start"] = strval($f['start']);
+            $atts["autofill_selectables_end"] = strval($f['end']);
+        }
+
+        if($f['type'] == 'numselect_intrange')
+        {
+            $nf['type'] = 'numselect';
+            $atts["autofill_selectables_start"] = strval($f['start']);
+            $atts["autofill_selectables_end"] = strval($f['end']);
+        }
+
         if($f['type'] == 'txtradio')
         {
             $nf['type'] = 'txtselect';
@@ -785,6 +799,26 @@ function definition_converter_codkep_to_gsafe2($def)
 
         if(isset($f['color']))
             $atts['color'] = substr($f['color'],1);
+
+        if(isset($f['prefix']))
+            $atts['txt_before'] = $f['prefix'];
+
+        if(isset($f['suffix']))
+            $atts['txt_after']  = $f['suffix'];
+
+        if(isset($atts['txt_before']) &&
+           isset($atts['txt_after']) &&
+           substr($atts['txt_before'],0,1) == '<' &&
+           substr($atts['txt_before'],-1)  == '>'  &&
+           substr($atts['txt_after'],0,2)  == '</' &&
+           substr($atts['txt_after'],-1)   == '>'   &&
+           substr($atts['txt_before'],1,strlen($atts['txt_before']) - 2) == substr($atts['txt_after'],2,strlen($atts['txt_after']) - 3)
+          )
+        {
+            //Enclosing value in a html tag will not work, so zero it...
+            $atts['txt_before'] = '';
+            $atts['txt_after']  = '';
+        }
 
         if(isset($f['gsafe2_attributes']))
         {
