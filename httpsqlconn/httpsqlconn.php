@@ -758,6 +758,7 @@ function definition_converter_codkep_to_gsafe2($def)
 
         $nf['sqlname'] = $f['sql'];
         $nf['description'] = $f['text'];
+        $nf['title'] = $f['text'];
 
         if(isset($f['default']))
             $nf['default'] = $f['default'];
@@ -795,6 +796,28 @@ function definition_converter_codkep_to_gsafe2($def)
                                            'attributes' => [['valid_regex' => $regex]],
                                           ];
                 }
+        }
+
+        if(isset($f['minimum']))
+        {
+            $atts['minimum'] = $f['minimum'];
+            if(!isset($nf['validators']))
+                $nf['validators'] = [];
+            $nf['validators'][] = ['type' => 'range',
+                                           'failmessage' => 'Exceed the minimum',
+                                           'attributes' => [['minimum' => $f['minimum']]],
+                                          ];
+        }
+
+        if(isset($f['maximum']))
+        {
+            $atts['maximum'] = $f['maximum'];
+            if(!isset($nf['validators']))
+                $nf['validators'] = [];
+            $nf['validators'][] = ['type' => 'range',
+                                           'failmessage' => 'Exceed the maximum',
+                                           'attributes' => [['maximum' => $f['maximum']]],
+                                          ];
         }
 
         if(isset($f['color']))
