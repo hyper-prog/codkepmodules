@@ -13,7 +13,7 @@ By configuring this module you can "execute" the built queries in server side sa
 .
 C++ sample code (in client program)
 ~~~code
-#include <builder.h> //From gSAFE
+#include <builder.h> //From gSAFE (ver < 1.x )
 .
 ...
 .
@@ -29,6 +29,37 @@ conn.sendReqAll(db_query("usertable")
                    .cond_fv("age",Unquoted,"30",">")
                 );
 .
+~~~
+.
+From gSAFE version 2 the rest connected databases are directly supported by HRestSqlDatabase class
+
+~~~code
+#include <gSafe>
+.
+...
+.
+QMap<QString,QString> params;
+params["server_url"]       = "http://192.168.1.102/httpsqlconn";
+params["resource_name"]    = "sampleresource";
+params["fast_security_id"] = "secretreshash";
+params["peer_verify"]      = "no";
+//params["external_ca_file"] = ":/CERT/my.crt";
+.
+HRestSqlDatabase::addDatabase("sampledb",params);
+.
+//You can even login with API session
+//After successful login the httpsqlconn handlers will have configured $user object.
+// HRestSqlDatabase::database("sampledb").sendLoginToCodkep("hyper","passwordofhyper");
+.
+.
+HSql sql;
+sql.db("sampledb");
+auto r = sql.execDataMtrx(db_query("page")
+                                    .get("title")
+                                    .get("path")
+                                    .cond_fb("published")
+                                    .sort("title"));
+sdebug(r->getContentAsCSV());
 ~~~
 
 === Steps of remote sql processing ===
@@ -145,3 +176,40 @@ function hook_mymodule_httpsqlconn_operation_enabled($resource,$operation,$table
     return NODE_ACCESS_IGNORE;
 }
 ~~~
+
+== Special commands and handlers ==
+
+You can extend the functionality of httpSqlConn module with custom commands on gSAFE side and handlers on CodKep side.
+.
+On CodKep side you have to enable the special command with ***HOOK_httpsqlconn_command_enabled($resource,$command)*** hook.
+~~~php
+function hook_my_httpsqlconn_command_enabled($resource,$command)
+{
+    if($resource == "sampleresource")
+    {
+        if($command == "req_custom")
+            return NODE_ACCESS_ALLOW;
+    }
+    return NODE_ACCESS_DENY;
+}
+~~~
+.
+You have to define a handler functions which receive the special request.
+The special name is ***dc_executor__COMMANDNAME($resourcename,$jsonarray)***
+~~~php
+function dc_executor__req_custom($resourcename,$jsonarray)
+{
+   ...
+   //return ['status' => 'ERROR','return' => '','array' => []];
+   return ['status' => 'Ok','return' => 'sample return text','array' => []];
+}
+~~~
+On C++ side you can call this special command with ***HRestSqlDatabase::sendCustomRequest(QString reqId,QString& request)***
+~~~code
+QString jsondata_to_send = ...
+QString received_json;
+received_json =
+  HRestSqlDatabase::database("sampledb").sendCustomRequest("req_custom",jsondata_to_send);
+
+~~~
+

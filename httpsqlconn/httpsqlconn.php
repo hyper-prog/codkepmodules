@@ -723,7 +723,7 @@ function hook_httpsqlconn_introducer()
     global $httpsqlconn;
 
     if($httpsqlconn->define_routes)
-        $html .= 'HttpSqlConn url: <code>'.$_SERVER['REQUEST_SCHEME'].'://httpsqlconn/{resourcename}/{fastid}</code><br/>';
+        $html .= 'HttpSqlConn url: <code>'.$_SERVER['REQUEST_SCHEME'].'://SERVERADDRESS/httpsqlconn/{resourcename}/{fastid}</code><br/>';
     $html .= 'Available resources: ';
     $n = 0;
     foreach($httpsqlconn->resources as $rname => $rdata)
