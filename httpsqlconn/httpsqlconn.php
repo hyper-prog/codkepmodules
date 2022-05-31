@@ -167,7 +167,34 @@ function httpsqlconnProvider($resource,$parameters)
     if(!isset($jsonarray['reqId']))
     {
         d1('HttpSqlConn provider: Json decode error. (AJD0)');
-        return ['status' => 'ERROR','return' => '','array' => []];
+        return ['status' => 'ERROR','rtype' => 'single','return' => '','array' => []];
+    }
+
+    $uinit_data = [];
+    $ureturn = ['status' => '','rtype' => 'single','return' => '','array' => []];
+
+    if(isset($jsonarray['session']))
+    {
+        if(isset($jsonarray['session']['apitoken']) && isset($jsonarray['session']['chkval']))
+        {
+            $apitoken = $jsonarray['session']['apitoken'];
+            $uinit_data = user_init_api($apitoken,$jsonarray['session']['chkval']);
+
+            global $user;
+            if($user->auth)
+            {
+                $ureturn['session'] = [
+                    'auth' => 'yes',
+                    'login' => $user->login,
+                    ];
+
+                if(isset($uinit_data['action']) && $uinit_data['action'] == 'keychange')
+                {
+                    $ureturn['session']['keychange'] = 'required';
+                    $ureturn['session']['chkval'] = $uinit_data['chkval'];
+                }
+            }
+        }
     }
 
     $reqId = $jsonarray['reqId'];
@@ -176,33 +203,55 @@ function httpsqlconnProvider($resource,$parameters)
         if(httpsqlconn_command_enabled($resource,$reqId) != NODE_ACCESS_ALLOW)
         {
             d1("HttpSqlConn error: Not enabled command $reqId in resource $resource.");
-            return ['status' => 'ERROR','return' => '','array' => []];
+            $ureturn['status'] = 'ERROR';
+            return $ureturn;
         }
 
         try
         {
-            return call_user_func('dc_executor__' . $reqId, $resource, $jsonarray);
+            $urr = call_user_func('dc_executor__' . $reqId, $resource, $jsonarray);
+
+            if(isset($urr['status']))
+                $ureturn['status'] = $urr['status'];
+            else
+                $ureturn['status'] = 'ERROR';
+
+            if(isset($urr['rtype']))
+                $ureturn['rtype']  = $urr['rtype'];
+            if(isset($urr['return']))
+                $ureturn['return'] = $urr['return'];
+            if(isset($urr['array']))
+                $ureturn['array']  = $urr['array'];
+
+            return $ureturn;
         }
         catch(Exception $e)
         {
             d1("HttpSqlConn processing error: ".$e->getMessage());
-            return ['status' => 'ERROR','return' => '','array' => []];
+            $ureturn['status'] = 'ERROR';
+            $ureturn['rtype']  = 'single';
+            $ureturn['return'] = '';
+            $ureturn['array']  = [];
+            return $ureturn;
         }
-
     }
     d1("HttpSqlConn error: Unknown or not valid command in resource $resource:".$reqId);
-    return ['status' => 'ERROR','return' => '','array' => []];
+    $ureturn['status'] = 'ERROR';
+    $ureturn['rtype']  = 'single';
+    $ureturn['return'] = '';
+    $ureturn['array']  = [];
+    return $ureturn;
 }
 
 function dc_executor__req_ping($res,$jsonarray)
 {
-    return ['status' => 'Ok','rtype' => 'single','return' => "Pong",'array' => []];
+    return ['status' => 'Ok','rtype' => 'single','return' => "Pong"];
 }
 
 function dc_executor__req_server_time($res,$jsonarray)
 {
     $st = sql_exec_single("SELECT " . sql_t('current_timestamp'));
-    return ['status' => 'Ok','rtype' => 'single','return' => $st,'array' => []];
+    return ['status' => 'Ok','rtype' => 'single','return' => $st];
 }
 
 function dc_executor__check_fields_exists($res,$jsonarray)
@@ -217,10 +266,51 @@ function dc_executor__check_fields_exists($res,$jsonarray)
         if($db->error)
         {
             d1('HttpSqlConn sql error(FE1):'.$db->errormsg);
-            return ['status' => 'ERROR', 'return' => '','array' => []];
+            return ['status' => 'ERROR', 'return' => ''];
         }
     }
-    return ['status' => 'Ok','rtype' => 'single','return' => 'all_exists','array' => []];
+    return ['status' => 'Ok','rtype' => 'single','return' => 'all_exists'];
+}
+
+function dc_executor__login_user($res,$jsonarray)
+{
+    if(!isset($jsonarray["parameters"]["login"]) || $jsonarray["parameters"]["login"] == "")
+        return ['status' => 'ERROR','return' => 'error-spu01'];
+    if(!isset($jsonarray["parameters"]["cred"]) || $jsonarray["parameters"]["cred"] == "")
+        return ['status' => 'ERROR','return' => 'error-spu02'];
+
+    $back = user_login_api($jsonarray["parameters"]["login"],$jsonarray["parameters"]["cred"]);
+
+    global $user;
+    if(!$user->auth || $back['authstatus'] != 'success')
+        return ['status' => 'ERROR','return' => 'error-spu06'];
+
+    return ['status' => 'Ok','return' => 'array','array' => [
+               'login'    => $user->login,
+               'name'     => $user->name,
+               'apitoken' => $back['apitoken'],
+               'chkval'   => $back['chkval'],
+               ]];
+}
+
+function dc_executor__whoami_user($res,$jsonarray)
+{
+    global $user;
+    return ['status' => 'Ok','return' => 'array','array' => [
+               'auth'     => $user->auth ? "yes" : "no",
+               'login'    => $user->login,
+               'name'     => $user->name,
+               ]];
+}
+
+function dc_executor__logout_user($res,$jsonarray)
+{
+    global $user;
+
+    if($user->auth && $user->client == 'api')
+        user_logout_api($user->apitoken);
+
+    return ['status' => 'Ok','return' => ''];
 }
 
 function dc_executor__query_uni($res,$jsonarray)
@@ -626,7 +716,6 @@ function executorQueryUni_sort($res,$action,$sorts,$q)
         $q->sort($f1,$opt);
     }
 }
-
 
 function hook_httpsqlconn_introducer()
 {
