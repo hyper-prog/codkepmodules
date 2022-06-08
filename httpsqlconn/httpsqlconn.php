@@ -838,9 +838,17 @@ function definition_converter_codkep_to_gsafe2($def)
         }
 
         if($f['type'] == 'sqlnchoose')
+        {
             $nf['type'] = 'sqlnchoose';
+            if(isset($f['optional']) && $f['optional'] == "yes")
+                $nf['unknownallowed'] = "yes";
+        }
         if($f['type'] == 'sqlschoose')
+        {
             $nf['type'] = 'sqlschoose';
+            if(isset($f['optional']) && $f['optional'] == "yes")
+                $nf['unknownallowed'] = "yes";
+        }
 
         if($nf['type'] == '')
             continue;
