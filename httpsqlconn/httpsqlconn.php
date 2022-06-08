@@ -946,6 +946,11 @@ function definition_converter_codkep_to_gsafe2($def)
                 $atts[$ai] = $av;
         }
 
+        if(isset($f['gsafe2_tags']))
+        {
+            $nf['tags'] = $f['gsafe2_tags'];
+        }
+
         if(!empty($atts))
         {
             $nf['attributes'] = [];
