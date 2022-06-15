@@ -67,8 +67,6 @@ function httpsqlconn_connection_callback()
     if($encdata == "")
         return NULL;
 
-    userblocking_clear();
-
     if(isset($httpsqlconn->resources[$resource]['sqlreconnect']) &&
        $httpsqlconn->resources[$resource]['sqlreconnect'] )
     {
