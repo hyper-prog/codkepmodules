@@ -915,6 +915,9 @@ function definition_converter_codkep_to_gsafe2($def)
                                           ];
         }
 
+        if(isset($f['readonly']) && $f['readonly'])
+            $nf["displayflags"] = "Readonly";
+
         if(isset($f['color']))
             $atts['color'] = substr($f['color'],1);
 
