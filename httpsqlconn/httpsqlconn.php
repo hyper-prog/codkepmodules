@@ -448,7 +448,7 @@ function executorQueryUni_fieldsGet($res,$action,$fields,$q)
 
 function executorQueryUni_fieldsSet($res,$action,$fields,$q)
 {
-    if($action != 'insert' && $action != "update")
+    if($action != 'insert' && $action != 'update')
         return;
 
     foreach($fields as $f)
@@ -516,7 +516,7 @@ function executorQueryUni_joins($res,$action,$joins,$q)
 
 function executorQueryUni_condtop($res,$action,$condarray,$q,$objtype)
 {
-    if($action != 'select' && $action != "update" && $action != "delete")
+    if($action != 'select' && $action != 'update' && $action != 'delete')
         return;
 
     foreach($condarray as $cond)
@@ -528,12 +528,18 @@ function executorQueryUni_condtop($res,$action,$condarray,$q,$objtype)
         if($ctype == "sub")
         {
             $rel = $cond['relation'];
-            if($rel != "and" && $rel != "or")
+            if($rel != "and" && $rel != "or" && $rel != "nand" && $rel != "nor")
                 throw new Exception("Invalid sub condition relation. (ICNR0)");
             if(!isset($cond['subcond']) || !is_array($cond['subcond']))
                 throw new Exception("Invalid sub condition specification. (ICNS0)");
 
-            $qsub = cond($rel);
+            $opposite = false;
+            if(substr($rel,0,1) == 'n')
+            {
+                $opposite = true;
+                $rel = substr($rel,1);
+            }
+            $qsub = $opposite ? not_cond($rel) : cond($rel);
             foreach($cond['subcond'] as $index => $subcond)
                 executorQueryUni_cond($res, $action, $subcond, $qsub);
             $q->cond($qsub);
@@ -547,7 +553,7 @@ function executorQueryUni_condtop($res,$action,$condarray,$q,$objtype)
 
 function executorQueryUni_cond($res,$action,$cond,$qc)
 {
-    if($action != 'select' && $action != "update" && $action != "delete")
+    if($action != 'select' && $action != 'update' && $action != 'delete')
         return;
 
     if(!isset($cond['type']))
@@ -557,11 +563,17 @@ function executorQueryUni_cond($res,$action,$cond,$qc)
     if($ctype == "sub")
     {
         $rel = $cond['relation'];
-        if($rel != "and" && $rel != "or")
+        if($rel != "and" && $rel != "or" && $rel != "nand" && $rel != "nor")
             throw new Exception("Invalid sub condition relation. (ICNR0)");
         if(!isset($cond['subcond']) || !is_array($cond['subcond']))
             throw new Exception("Invalid sub condition specification. (ICNS0)");
 
+        $opposite = false;
+        if(substr($rel,0,1) == 'n')
+        {
+            $opposite = true;
+            $rel = substr($rel,1);
+        }
         $qsub = cond($rel);
         foreach($cond['subcond'] as $index => $subcond)
             executorQueryUni_cond($res, $action, $subcond, $qsub);
