@@ -15,13 +15,13 @@ This annotation will automatically define the routes in the codkep system.
 	    print l("Go to page with parameter","secondpage/something");
 	    return ob_get_clean();
 	}
-.
+	
 	#[ckpath("colchange"),cktype("ajax")]
 	function loc_colorchanger()
 	{
 	    ajax_add_html('#colorph',"BLUE");
 	}
-	.
+	
 	#[ckpath("secondpage/{str}")]
 	function loc_secondpage()
 	{
