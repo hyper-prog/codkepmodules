@@ -7,6 +7,7 @@ This annotation will automatically define the routes in the codkep system.
 Because this module uses php8 attributes it requires at least php 8.0 version!
 
 Sample codes:
+
 	#[ckpath("start")]
 	function loc_samplepage()
 	{
