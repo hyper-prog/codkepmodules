@@ -1,0 +1,57 @@
+= Attribute routes module =
+
+Module name: **phpattroutes**
+<br/>
+You have to enable this module in ***site/_modules.php*** file to use it.
+.
+**Because this module uses php8 attributes it requires at least php 8.0 version!**
+.
+This modules lets you to use php attributes (annotations) to define routes for your callback function.
+You can place annotations before your ***loc_*** prefixed function. This annotation will automatically define the routes in the codkep system.
+.
+*Note: For performance consideration only the loc_ prefixed functions can accept this kind of attributes. *
+*Apart from this, there are no other restrictions on function names.*
+.
+Check out the following sample with 3 different defined route
+~~~php
+#[ckpath("start")]
+function loc_samplepage()
+{
+    ob_start();
+    print "<h2>I am a sample page!</h2>";
+    print "<div id=\"colorph\">RED</div>";
+    print lx("Change color","colchange");
+    print "<br/>";
+    print l("Go to page with parameter","secondpage/something");
+    return ob_get_clean();
+}
+.
+#[ckpath("colchange"),cktype("ajax")]
+function loc_colorchanger()
+{
+    ajax_add_html('#colorph',"BLUE");
+}
+.
+#[ckpath("secondpage/{str}")]
+function loc_secondpage()
+{
+    par_def('str','text2');
+    ob_start();
+    print "<h2>I am a page with parameter!</h2>";
+    $p = par('str');
+    print "The parameter value is: $p";
+    return ob_get_clean();
+}
+
+~~~
+
+=== Attributes ===
+
+You can define the following attributes for ***loc_*** prefixed functions
+.
+- ***"ckpath"*** - Specifies the value of ***path*** in route definition array.
+- ***"cktype"*** - Specifies the value of ***type*** in route definition array.
+- ***"cktheme"*** - Specifies the value of ***theme*** in route definition array.
+
+See the [route definition array section|url:doc/codkep/routes#routedefarray] of the documentation to understand this values above.
+
