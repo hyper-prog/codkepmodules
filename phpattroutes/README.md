@@ -38,6 +38,12 @@ Sample codes:
 	}
 
 
+Available route attributes:
+
+- ***"ckpath"*** - Specifies the value of ***path*** in route definition array.
+- ***"cktype"*** - Specifies the value of ***type*** in route definition array.
+- ***"cktheme"*** - Specifies the value of ***theme*** in route definition array.
+- ***"cktitle"*** - Specifies the value of ***title*** in route definition array.
 
 
 
