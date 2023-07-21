@@ -43,6 +43,13 @@ function hook_phpattroutes_defineroute()
                 if(count($att_cktype_args) > 0)
                     $route['type'] = $att_cktype_args[0];
             }
+            $att_cktitle = $refl->getAttributes('cktitle');
+            if(count($att_cktitle) > 0)
+            {
+                $att_cktitle_args = $att_cktitle[0]->getArguments();
+                if(count($att_cktitle_args) > 0)
+                    $route['title'] = $att_cktitle_args[0];
+            }
             $att_cktheme = $refl->getAttributes('cktheme');
             if(count($att_cktheme) > 0)
             {
